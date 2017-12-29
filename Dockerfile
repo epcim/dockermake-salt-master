@@ -33,46 +33,46 @@ RUN echo "Installing common packages" \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.cache /home/*/.cache
 
-RUN echo "Installing salt-formulas"  && \
-        set -xev && \
+RUN echo "Installing salt-formulas"  &&\
+        set -xev &&\
         # configure git/ssh
-        git config --global user.email || git config --global user.email 'ci@ci.local' && \
-        git config --global user.name || git config --global user.name 'CI' && \
-        mkdir -p /srv/salt/reclass/classes && \
-        mkdir -p /root/.ssh/ && \
-        touch /root/.ssh/config && \
-        touch /root/.ssh/known_hosts && \
+        git config --global user.email || git config --global user.email 'ci@ci.local' &&\
+        git config --global user.name || git config --global user.name 'CI' &&\
+        mkdir -p /srv/salt/reclass/classes &&\
+        mkdir -p /root/.ssh/ &&\
+        touch /root/.ssh/config &&\
+        touch /root/.ssh/known_hosts &&\
         # install ingeration/formulas/other salt prereq
-        pip install setuptools salt ruamel.yaml && \
+        pip install wheel setuptools salt ruamel.yaml &&\
         # configure salt
         ## install shared reclass model (optional)
         mkdir -p /srv/salt/reclass/classes/system &&\
-        git clone https://github.com/Mirantis/reclass-system-salt-model /srv/salt/reclass/classes/system && \
+        git clone https://github.com/Mirantis/reclass-system-salt-model /srv/salt/reclass/classes/system &&\
         ## install shared salt-class model (optional)
         mkdir -p /srv/salt/reclass/saltclass/system &&\
-        git clone https://github.com/epcim/saltclass-system /srv/salt/saltclass/classes/system && \
+        git clone https://github.com/epcim/saltclass-system /srv/salt/saltclass/classes/system &&\
         ## scripted salt-formulas bootstrap (optional)
-        git clone https://github.com/salt-formulas/salt-formulas-scripts /srv/salt/scripts && \
-        bash -c "echo 'salt-formulas bootstrap' && \
+        git clone https://github.com/salt-formulas/salt-formulas-scripts /srv/salt/scripts &&\
+        bash -c "echo 'salt-formulas bootstrap' &&\
         rm -f /etc/apt/sources.list.d/*salt*.list || true &&\
-        source /srv/salt/scripts/bootstrap.sh && cd /srv/salt/scripts && \
-        source_local_envs && \
-        configure_pkg_repo && \
-        system_config_salt_modules_prereq && \
-        install_reclass develop && \
-        system_config_ssh_conf" && \
-        curl -L https://bootstrap.saltstack.com | $SUDO sh -s -- ${BOOTSTRAP_SALTSTACK_OPTS} && \
+        source /srv/salt/scripts/bootstrap.sh && cd /srv/salt/scripts &&\
+        source_local_envs &&\
+        configure_pkg_repo &&\
+        system_config_salt_modules_prereq &&\
+        install_reclass develop &&\
+        system_config_ssh_conf" &&\
+        curl -L https://bootstrap.saltstack.com | $SUDO sh -s -- ${BOOTSTRAP_SALTSTACK_OPTS} &&\
         # pre-install stable salt-formulas (optional)
-        apt-get install -qy salt-formula-* && \
+        apt-get install -qy salt-formula-* &&\
         # saltclass fixup (optional)
         cp -a /usr/share/salt-formulas/reclass /usr/share/salt-formulas/saltclass &&\
         for i in $(grep -r -e '^applications:' -e '^parameters:' -l ${SALT_CLASS_SERVICE:-/usr/share/salt-formulas/saltclass/service}); do \
           sed -i 's/applications:/states:/g;s/parameters:/pillars:/g' $i; \
-        done && \
+        done &&\
         # clean up
-        apt-get clean && \
-        apt-get autoclean && \
-        apt-get autoremove -y && \
+        apt-get clean &&\
+        apt-get autoclean &&\
+        apt-get autoremove -y &&\
         rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.cache /home/*/.cache  /var/tmp/* /tmp/*
 
 VOLUME ["/etc/salt/pki", "/srv/salt/env", "/srv/salt/pillar", "/srv/salt/reclass", "/srv/salt/saltclass"]
