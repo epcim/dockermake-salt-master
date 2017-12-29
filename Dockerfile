@@ -39,7 +39,6 @@ RUN echo "Installing salt-formulas"  &&\
         # configure git/ssh
         git config --global user.email || git config --global user.email 'ci@ci.local' &&\
         git config --global user.name || git config --global user.name 'CI' &&\
-        mkdir -p /srv/salt/reclass/classes &&\
         mkdir -p /root/.ssh/ &&\
         touch /root/.ssh/config &&\
         touch /root/.ssh/known_hosts &&\
