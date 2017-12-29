@@ -34,8 +34,8 @@ RUN echo "Installing common packages" \
 RUN echo "Installing salt-formulas"  &&\
         set -xev &&\
         # boostrap.sh options
-        export BOOTSTRAP_SALTSTACK_OPTS="-dX git develop}" &&\
-        export DISTRIB_REVISION="nightly" &&\
+        export BOOTSTRAP_SALTSTACK_OPTS="-dX ${salt_version:-git develop}" &&\
+        export DISTRIB_REVISION="${salt_formula_revision:-nightly}" &&\
         # configure git/ssh
         git config --global user.email || git config --global user.email 'ci@ci.local' &&\
         git config --global user.name || git config --global user.name 'CI' &&\
