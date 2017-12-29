@@ -4,7 +4,7 @@ FROM ubuntu:latest
 MAINTAINER Petr Michalec "<epcim@apealive.net>"
 
 ARG apt_dist_revision="stable"
-ARG salt_version="stable"
+ARG salt_version="git develop"
 
 ENV DISTRIB_REVISION $apt_dist_revision \
     BOOTSTRAP_SALTSTACK_OPTS "-dX $salt_version" \
