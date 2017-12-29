@@ -1,21 +1,18 @@
-FROM epcim/salty-whales:xenial-2017.7
-#FROM ubuntu:latest
+#FROM epcim/salty-whales:xenial-2017.7
+FROM ubuntu:latest
 
 MAINTAINER Petr Michalec "<epcim@apealive.net>"
 
-ARG distrib_revision="stable"
-ARG salt_version="2017.7"
+ARG apt_dist_revision="stable"
+ARG salt_version="stable"
 
-ENV DISTRIB_REVISION $distrib_revision \
+ENV DISTRIB_REVISION $apt_dist_revision \
     BOOTSTRAP_SALTSTACK_OPTS "-dX $salt_version" \
     DEBIAN_FRONTEND=noninteractive \
     DEBCONF_NONINTERACTIVE_SEEN=true \
     LANG=C.UTF-8 \
     LANGUAGE=$LANG \
     TZ=Etc/UTC
-
-#RUN apt-get update && apt-get install -y vim-tiny python-setuptools curl git sudo python-pip python-dev zlib1g-dev \
-#    apt-transport-https && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.cache /home/*/.cache
 
 RUN echo "Installing common packages" \
  && apt-get update -q \
@@ -78,3 +75,7 @@ RUN echo "Installing salt-formulas"  && \
         apt-get autoremove -y && \
         rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.cache /home/*/.cache  /var/tmp/* /tmp/*
 
+VOLUME ["/etc/salt/pki", "/srv/salt/env", "/srv/salt/pillar", "/srv/salt/reclass", "/srv/salt/saltclass"]
+EXPOSE 4505 4506
+
+#TODO, mind, no entrypoint to start salt master service
