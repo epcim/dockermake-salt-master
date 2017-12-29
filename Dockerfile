@@ -1,14 +1,11 @@
 #FROM epcim/salty-whales:xenial-2017.7
 FROM ubuntu:latest
-
 MAINTAINER Petr Michalec "<epcim@apealive.net>"
 
-ARG apt_dist_revision="stable"
-ARG salt_version="git develop"
+# ARGs
+#
 
-ENV DISTRIB_REVISION $apt_dist_revision \
-    BOOTSTRAP_SALTSTACK_OPTS "-dX $salt_version" \
-    DEBIAN_FRONTEND=noninteractive \
+ENV DEBIAN_FRONTEND=noninteractive \
     DEBCONF_NONINTERACTIVE_SEEN=true \
     LANG=C.UTF-8 \
     LANGUAGE=$LANG \
@@ -36,6 +33,9 @@ RUN echo "Installing common packages" \
 
 RUN echo "Installing salt-formulas"  &&\
         set -xev &&\
+        # boostrap.sh options
+        export BOOTSTRAP_SALTSTACK_OPTS="-dX git develop}" &&\
+        export DISTRIB_REVISION="nightly" &&\
         # configure git/ssh
         git config --global user.email || git config --global user.email 'ci@ci.local' &&\
         git config --global user.name || git config --global user.name 'CI' &&\
