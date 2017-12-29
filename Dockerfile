@@ -16,12 +16,13 @@ ENV DISTRIB_REVISION $apt_dist_revision \
 
 RUN echo "Installing common packages" \
  && apt-get update -q \
- && apt-get install -qy --no-install-recommends \
+ && apt-get install -qy \
       vim-tiny \
       curl \
       git \
       sudo \
       python-pip \
+      python-wheel \
       python-setuptools \
       python-dev \
       zlib1g-dev \
@@ -43,7 +44,7 @@ RUN echo "Installing salt-formulas"  &&\
         touch /root/.ssh/config &&\
         touch /root/.ssh/known_hosts &&\
         # install ingeration/formulas/other salt prereq
-        pip install wheel setuptools salt ruamel.yaml &&\
+        pip install setuptools salt ruamel.yaml &&\
         # configure salt
         ## install shared reclass model (optional)
         mkdir -p /srv/salt/reclass/classes/system &&\
