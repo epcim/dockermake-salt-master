@@ -13,7 +13,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LANGUAGE=$LANG \
     TZ=Etc/UTC
 
-RUN echo "Installing common packages" \
+RUN echo "Layer salt prereq. and common pkgs" \
  && apt-get update -q \
  && apt-get install -qy \
       vim-tiny \
@@ -33,7 +33,7 @@ RUN echo "Installing common packages" \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.cache /home/*/.cache
 
-RUN echo "Installing salt-formulas"  &&\
+RUN echo "Layer salt-formulas"  &&\
         set -xev &&\
         # boostrap.sh options
         export BOOTSTRAP_SALTSTACK_OPTS="-dX ${salt_version:-stable}" &&\
@@ -45,7 +45,7 @@ RUN echo "Installing salt-formulas"  &&\
         touch /root/.ssh/config &&\
         touch /root/.ssh/known_hosts &&\
         # install ingeration/formulas/other salt prereq
-        pip install setuptools salt ruamel.yaml &&\
+        pip install setuptools ruamel.yaml &&\
         # configure salt
         ## install shared reclass model (optional)
         mkdir -p /srv/salt/reclass/classes/system &&\
