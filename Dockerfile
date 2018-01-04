@@ -11,8 +11,11 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LANGUAGE=$LANG \
     TZ=Etc/UTC
 
-RUN echo "Layer salt prereq. and common pkgs" \
+RUN echo "Layer Ubuntu upgrade" \
  && apt-get update -q \
+ && apt-get upgrade -qy
+
+RUN echo "Layer salt prereq. and common pkgs" \
  && apt-get install -qy \
       vim-tiny \
       curl \
