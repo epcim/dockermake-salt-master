@@ -23,7 +23,7 @@ ENV TZ Etc/UTC
 RUN echo "Layer prerequisites and common packages" \
  && apt-get update -q \
  && apt-get upgrade -qy \
- && DEBIAN_FRONTEND=noninteractive apt-get install -y \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
       gpgv \
       wget \
       curl \
