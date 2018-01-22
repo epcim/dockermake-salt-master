@@ -59,14 +59,17 @@ RUN echo "Layer salt-formulas" &&\
     echo "$APT_REPOSITORY" | tee /etc/apt/sources.list.d/salt-formulas.list >/dev/null &&\
     curl -sL $APT_REPOSITORY_GPG | $SUDO apt-key add - &&\
     apt-get -qq update &&\
-    DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" salt-formula-* -y &&\
+    DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" salt-formula-* -y ;\
+    mkdir -p /srv/salt/env/dev ;\
+    ln -s /usr/share/salt-formulas/env /srv/salt/env/prd ;\
     apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN echo "Layer reclass" &&\
     mkdir -p /etc/reclass /srv/salt/reclass/classes/system &&\
     git clone https://github.com/Mirantis/reclass-system-salt-model /srv/salt/reclass/classes/system &&\
     pip install --install-option="--prefix=" --upgrade --force-reinstall -I \
-      git+https://github.com/salt-formulas/reclass.git@master
+      git+https://github.com/salt-formulas/reclass.git@master &&\
+    ln -s /usr/share/salt-formulas/reclass/service /srv/salt/reclass/classes/service
 
 RUN echo "Layer saltclass" &&\
     mkdir -p mkdir /srv/salt/saltclass/classes/system &&\
@@ -74,7 +77,8 @@ RUN echo "Layer saltclass" &&\
     cp -a /usr/share/salt-formulas/reclass /usr/share/salt-formulas/saltclass &&\
     for i in $(grep -r -e '^applications:' -e '^parameters:' -l ${SALT_CLASS_SERVICE:-/usr/share/salt-formulas/saltclass/service}); do \
       sed -i 's/applications:/states:/g;s/parameters:/pillars:/g' $i; \
-    done
+    done &&\
+    ln -s /usr/share/salt-formulas/saltclass/service /srv/salt/saltclass/classes/service
 
 # Use tini as subreaper in Docker container to adopt zombie processes
 ENV TINI_VERSION 0.16.1
