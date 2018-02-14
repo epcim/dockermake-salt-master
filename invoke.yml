@@ -1,8 +1,9 @@
 matrix:
   dist:
     ubuntu:
+    - trusty
     - xenial
-    - bionic
+    # - bionic
     debian:
     - stretch
     # centos:

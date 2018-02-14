@@ -35,10 +35,10 @@ common:
 
 salt:
    #ARG salt_ext_pillar=" "
+   #ENV SALT_EXT_PILLAR $salt_ext_pillar
   build: |
     ARG SALT_VERSION="stable"
     ENV SALT_BOOTSTRAP_OPTS "-dX ${SALT_VERSION}"
-    ENV SALT_EXT_PILLAR $salt_ext_pillar
     RUN echo "Layer salt" \
       && apt-get update -qq \
       && mkdir -p /var/run/salt /var/cache/salt /var/log/salt /etc/salt/pki/master/minions \
@@ -113,16 +113,22 @@ ubuntu-xenial:
     - base
     - common
 
+ubuntu-trusty:
+  FROM: ubuntu:xenial
+  requires:
+    - base
+    - common
+
 # Mixin requested: https://github.com/avirshup/DockerMake/issues
 # TODO, Jinja processing of the yaml makefile before yaml is parsed
 # TODO, build args interpolated?
-salt-formulas-wheelhouse:
-  requires:
-  # NOTE, use with base image "--requires ubuntu-bionic"
-  - salt
-  - salt-formulas
-  - wheelhouse
-
+#salt-formulas-wheelhouse:
+#  requires:
+#  # NOTE, use with base image "--requires ubuntu-bionic"
+#  - salt
+#  - salt-formulas
+#  - wheelhouse
+#
 #salt-formulas-reclass:
 #  requires:
 #  # NOTE, use with base image "--requires ubuntu-bionic"
