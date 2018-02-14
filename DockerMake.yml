@@ -1,0 +1,138 @@
+# vim: sts=2 ts=2 sw=2 ft=yaml
+
+# Debian family
+
+# LAYERS
+base:
+  ignore: |
+    *.pyc
+    *~
+    *.tmp
+  build: |
+    MAINTAINER Petr Michalec "<epcim@apealive.net>"
+    ENV LANG C.UTF-8
+    ENV LANGUAGE $LANG
+    ENV TZ Etc/UTC
+
+common:
+  build: |
+    RUN echo "Layer with common packages" \
+      && apt-get update -qq \
+      && apt-get upgrade -qy \
+      && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+           curl \
+           git \
+           sudo \
+           vim-tiny \
+           wget \
+            \
+           apt-transport-https \
+           ca-certificates \
+           netcat \
+           tzdata \
+           zlib1g-dev \
+      && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.cache /home/*/.cache
+
+salt:
+   #ARG salt_ext_pillar=" "
+  build: |
+    ARG salt_version="stable"
+    ENV SALT_BOOTSTRAP_OPTS "-dX ${salt_version}"
+    ENV SALT_EXT_PILLAR $salt_ext_pillar
+    RUN echo "Layer salt" \
+      && apt-get update -qq \
+      && mkdir -p /var/run/salt /var/cache/salt /var/log/salt /etc/salt/pki/master/minions \
+      && curl -L https://bootstrap.saltstack.com | $SUDO sh -s -- -M ${SALT_BOOTSTRAP_OPTS} \
+      && useradd --system salt \
+      && chown -R salt:salt /etc/salt /var/cache/salt /var/log/salt /var/run/salt \
+      && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.cache /home/*/.cache
+
+
+# TODO supoort for stable/testing/nightly formulas ??
+# TODO supoort for saltstack formulas from spm
+salt-formulas:
+  build: |
+    ARG salt_formula_revision="nightly"
+    ENV SALT_FORMULA_REVISION $salt_formula_revision
+    ENV APT_REPOSITORY "deb http://apt.mirantis.com/xenial ${SALT_FORMULA_REVISION} salt"
+    ENV APT_REPOSITORY_GPG "http://apt.mirantis.com/public.gpg"
+    RUN echo "Layer salt, salt-formulas prerequisites" \
+      && apt-get update -qq \
+      && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+         gcc \
+         gpgv \
+         python-pip \
+         python-wheel \
+         python-setuptools \
+         python-dev \
+      && pip install ruamel.yaml
+      # TODO: Once debian update to 0.15.x install python-ruamel.yaml from pkg
+      #    python-ruamel &&\
+    RUN echo "Layer salt-formulas" \
+      && echo "$APT_REPOSITORY" | tee /etc/apt/sources.list.d/salt-formulas.list >/dev/null \
+      && curl -sL $APT_REPOSITORY_GPG | $SUDO apt-key add - \
+      && apt-get -qq update \
+      && DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" "salt-formula-*" -y --fix-missing ;\
+        mkdir -p /srv/salt/env/dev ;\
+        ln -s /usr/share/salt-formulas/env /srv/salt/env/prd ;\
+        apt-get clean; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.cache /home/*/.cache
+       #
+       #Alternative ppa/nightly:
+       #echo "deb http://ppa.launchpad.net/salt-formulas/ppa/ubuntu xenial main" >/etc/apt/sources.list.d/salt-formulas.list &&\
+       #apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 39847281B4B4F5E69A9012612B06BC3AFC7315C0 &&\
+       #apt-get update &&\
+       #DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" salt-formula-* -y &&\
+       #apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+wheelhouse:
+  # requires:
+  #   - base
+  # copy_from:
+  #   wheelhouse: /wh
+  build: |
+    RUN echo "Layer wheelhouse prerequisites" \
+      && git clone https://github.com/epcim/wheelhouse.git /wh
+
+
+# BASE IMAGES
+debian-stretch:
+  FROM: debian:stretch
+  requires:
+    - base
+    - common
+
+ubuntu-bionic:
+  FROM: ubuntu:bionic
+  requires:
+    - base
+    - common
+
+ubuntu-xenial:
+  FROM: ubuntu:xenial
+  requires:
+    - base
+    - common
+
+# Mixin requested: https://github.com/avirshup/DockerMake/issues
+# TODO, Jinja processing of the yaml makefile before yaml is parsed
+# TODO, build args interpolated?
+salt-formulas-wheelhouse:
+  requires:
+  # NOTE, use with base image "--requires ubuntu-bionic"
+  - salt
+  - salt-formulas
+  - wheelhouse
+
+#salt-formulas-reclass:
+#  requires:
+#  # NOTE, use with base image "--requires ubuntu-bionic"
+#  - salt
+#  - reclass
+#  - salt-formulas
+#
+#salt-formulas-saltclass:
+#  requires:
+#  # NOTE, use with base image "--requires ubuntu-bionic"
+#  - salt
+#  - saltclass
+#  - salt-formulas

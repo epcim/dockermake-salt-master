@@ -1,0 +1,49 @@
+matrix:
+  dist:
+    ubuntu:
+    - xenial
+    - bionic
+    debian:
+    - stretch
+    centos:
+    - 7
+  salt:
+    - stable
+    - develop
+    - 2016.3
+    - 2017.7
+  salt-formulas:
+    - stable
+    - nightly
+
+target:
+  salt:
+    matrix:
+      - dist
+      - salt
+    require:
+      - salt
+      - wheelhouse
+  salt-formulas-wheelhouse:
+    matrix:
+      - dist
+      - salt
+      - salt-formulas
+    require:
+      - salt
+      - salt-formulas
+      - wheelhouse
+#  salt-formulas-reclass:
+#    matrix:
+#      - dist
+#      - salt
+#      - salt-formulas
+#    require:
+#      - salt
+#      - salt-formulas
+#      - reclass
+#      - wheelhouse
+
+docker-make:
+  destination: 'images'
+  repository:  'epcim/salt-formulas'

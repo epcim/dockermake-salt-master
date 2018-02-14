@@ -46,6 +46,9 @@ RUN echo "Layer prerequisites and common packages" \
   && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.cache /home/*/.cache
   # TODO: once debian update to 0.15.x install python-ruamel.yaml from pkg
 
+RUN echo "Layer wheelhouse" &&\
+    git clone https://github.com/epcim/wheelhouse.git /wh
+
 RUN echo "Layer salt" &&\
     mkdir -p /var/run/salt /var/cache/salt /var/log/salt /etc/salt/pki/master/minions &&\
     curl -L https://bootstrap.saltstack.com | $SUDO sh -s -- -M ${SALT_BOOTSTRAP_OPTS} &&\
