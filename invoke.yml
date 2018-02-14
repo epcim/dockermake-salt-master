@@ -26,7 +26,7 @@ target:
       - salt
     require:
       - salt
-      - wheelhouse
+      - wheel
   wheelhouse:
     matrix:
       - dist
@@ -35,15 +35,15 @@ target:
     require:
       - salt
       - salt-formulas
-      - wheelhouse
-  salt-formulas-reclass:
+      - wheel
+  formulas-reclass:
     matrix:
       - dist
       - salt
       - salt-formulas
     require:
       - reclass
-  salt-formulas-saltclass:
+  formulas-saltclass:
     matrix:
       - dist
       - salt
@@ -54,5 +54,5 @@ target:
 dockermake:
   destination: 'images'
   repository:  'docker.io/epcim/salt-formulas'
-  options: '--no-cache'
+  # options: '--no-cache'
   # options: '--registry-user epcim'

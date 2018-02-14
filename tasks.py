@@ -30,22 +30,22 @@ def matrix_build(ctx, target, matrix=[], require=[], **kwargs):
     build(ctx, target, require, **kwargs)
 
 
-@task
-def default(ctx):
-    all(ctx)
 
-
-@task
+#TODO, (pre=[clean], post=[push])
+@task(default=True)
 def all(ctx, dry=False, push=False, **kwargs):
     for t, options in ctx.target.items():
         matrix_build(ctx, t, matrix=options['matrix'], require=options['require'], dry=dry, push=push, **kwargs)
 
 
 # WIP - not yet ready, finally it should be merged with @task 'all'
+# WIP - use namespace to expose images/targets as inoke tasks
+#image = Collection('image')
 @task
 def target(ctx, t=None):
     for tt, options in ctx.target.items():
         if tt is None:
+            #image.add_task(matrix_build, name=t)
             matrix_build(ctx, t, matrix=options['matrix'], require=options['require'])
         else:
             if tt == t :
@@ -70,22 +70,28 @@ def build(ctx, target, require=[], dist='debian', dist_rel='stretch', salt=None,
     fmt.update(ctx.dockermake)
 
     # Additional formating
+    ## compose image tag
     if salt:
         s = str(salt).replace(' ', '').strip()
-        #s = s.replace('stable', '') if len(s.replace('stable', '')) > 0  else s
-        #s = s.replace('git', '') if len(s.replace('git', '')) > 0  else s
+        s = s.replace('stable', '') if len(s.replace('stable', '')) > 0  else s
+        s = s.replace('gitv', 'git') if len(s.replace('gitv', 'git')) > 0  else s
         fmt['tag'] += '-salt-{}'.format(s)
     if formula_rev:
         fmt['tag'] += '-formula-{}'.format(formula_rev)
+    ## additional layers
     if len(require) > 0:
         fmt['requires'] += ' ' + ' '.join(require)
+    ## catch git develop || git <revision>
     if salt and (not str(salt).startswith(('stable')) and not str(salt).startswith(('git'))):
         fmt['salt'] = 'git ' + str(fmt['salt'])
+    ## dry mode echo cmds only
     if dry:
         fmt['dry'] = 'echo \''
         fmt['fin'] = '\''
+    ## pusht to registry
     if push:
         fmt['push'] = '--push-to-registry'
+    ## add docker-make cli arguments/options specified in invoke.yml
     if ctx.dockermake.get('options', False):
         fmt['opts'] = ctx.dockermake.options
 

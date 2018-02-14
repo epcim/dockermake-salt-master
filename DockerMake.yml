@@ -34,8 +34,6 @@ common:
       && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.cache /home/*/.cache
 
 salt:
-   #ARG salt_ext_pillar=" "
-   #ENV SALT_EXT_PILLAR $salt_ext_pillar
   build: |
     ARG SALT_VERSION="stable"
     ENV SALT_BOOTSTRAP_OPTS "-dX ${SALT_VERSION}"
@@ -84,7 +82,7 @@ salt-formulas:
        #DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" salt-formula-* -y &&\
        #apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-wheelhouse:
+wheel:
   build: |
     ARG WHEELHOUSE_REVISION="master"
     ENV WHEELHOUSE_REVISION $WHEELHOUSE_REVISION
@@ -98,9 +96,13 @@ reclass:
   requires:
   - salt
   - salt-formulas
+  - tini-saltmaster
   build: |
-    ARG RECLASS_REVISION="DEVELOP"
+    ARG SALT_EXT_PILLAR="reclass"
+    ENV SALT_EXT_PILLAR $SALT_EXT_PILLAR
+    ARG RECLASS_REVISION="develop"
     ENV RECLASS_REVISION $RECLASS_REVISION
+    VOLUME ['/etc/salt/pki' '/srv/salt/env' '/srv/salt/pillar' '/srv/salt/reclass']
     RUN echo "Layer reclass" \
       && mkdir -p /etc/reclass /srv/salt/reclass/classes/system \
       && git clone https://github.com/Mirantis/reclass-system-salt-model /srv/salt/reclass/classes/system \
@@ -113,7 +115,11 @@ saltclass:
   requires:
   - salt
   - salt-formulas
+  - tini-saltmaster
   build: |
+    ARG SALT_EXT_PILLAR="saltclass"
+    ENV SALT_EXT_PILLAR $SALT_EXT_PILLAR
+    VOLUME ['/etc/salt/pki' '/srv/salt/env' '/srv/salt/pillar' '/srv/salt/saltclass']
     RUN echo "Layer saltclass" \
       && mkdir -p mkdir /srv/salt/saltclass/classes/system \
       && git clone https://github.com/epcim/saltclass-system /srv/salt/saltclass/classes/system \
@@ -122,6 +128,30 @@ saltclass:
            sed -i 's/applications:/states:/g;s/parameters:/pillars:/g' $i; \
          done \
       && ln -s /usr/share/salt-formulas/saltclass/service /srv/salt/saltclass/classes/service
+
+tini:
+  build: |
+    ENV TINI_VERSION 0.16.1
+    ENV TINI_SHA 5e01734c8b2e6429a1ebcc67e2d86d3bb0c4574dd7819a0aff2dca784580e040
+    VOLUME ['/etc/salt/pki' '/srv/salt/env' '/srv/salt/pillar' '/srv/salt/reclass' '/srv/salt/saltclass']
+    RUN curl -s -S -L "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-static-amd64" -o /bin/tini && chmod +x /bin/tini \
+      && echo "$TINI_SHA  /bin/tini" | sha256sum -c -
+    #COPY files/entrypoint.sh /entrypoint.sh
+    #ENTRYPOINT ["/bin/tini", "--", "/entrypoint.sh"]
+
+tini-saltmaster:
+  build_directory: .
+  requires:
+  - tini
+  build: |
+    ADD files/reclass/reclass-config.yml /etc/reclass/
+    ADD files/salt/master.conf    /etc/salt/master.d/
+    ADD files/salt/saltclass.conf /tmp/
+    ADD files/salt/reclass.conf   /tmp/
+    COPY files/entrypoint.sh /entrypoint.sh
+    ENTRYPOINT ["/bin/tini", "--", "/entrypoint.sh"]
+    EXPOSE 4505 4506
+
 
 # BASE IMAGES
 debian-stretch:
