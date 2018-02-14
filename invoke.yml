@@ -5,19 +5,22 @@ matrix:
     - bionic
     debian:
     - stretch
-    centos:
-    - 7
+    # centos:
+    # - 7
   salt:
     - stable
+    - stable latest
+    - stable 2016.3
+    - stable 2017.7
     - develop
-    - 2016.3
-    - 2017.7
+    # - git 2018.2
   salt-formulas:
     - stable
     - nightly
 
 target:
-  salt:
+  # NOTE, make sure target names don't conflict with DockerMake target names
+  saltstack:
     matrix:
       - dist
       - salt
@@ -44,6 +47,7 @@ target:
 #      - reclass
 #      - wheelhouse
 
-docker-make:
+dockermake:
   destination: 'images'
-  repository:  'epcim/salt-formulas'
+  repository:  'docker.io/epcim/salt-formulas'
+  # options: '--registry-user epcim'

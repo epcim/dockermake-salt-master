@@ -34,11 +34,12 @@ def default(ctx):
 
 
 @task
-def all(ctx, dry=False, **kwargs):
+def all(ctx, dry=False, push=False, **kwargs):
     for t, options in ctx.target.items():
-        matrix_build(ctx, t, matrix=options['matrix'], require=options['require'], dry=dry, **kwargs)
+        matrix_build(ctx, t, matrix=options['matrix'], require=options['require'], dry=dry, push=push, **kwargs)
 
 
+# WIP - not yet ready, finally it should be merged with @task 'all'
 @task
 def target(ctx, t=None):
     for tt, options in ctx.target.items():
@@ -55,40 +56,46 @@ def clean(ctx):
 
 
 @task
-def build(ctx, target, require=[], dist='debian', dist_rel='stretch', salt=None, formula_rev=None, dry=False, **kwargs):
+def build(ctx, target, require=[], dist='debian', dist_rel='stretch', salt=None, formula_rev=None, dry=False, push=False, **kwargs):
     fmt = {'target'      : target,
            'dist'        : dist,
            'dist_rel'    : dist_rel,
-           'formula_rev' : formula_rev,
            'salt'        : salt,
-           'salt_src'    : '',
-           'requires'    : '',
+           'formula_rev' : formula_rev,
+           'requires'    : '{}-{}'.format(dist, dist_rel),
+           'push'        : '',
+           'opts'        : '',
            'dry'         : '',
            'tag'         : '',
           }
-    fmt.update(ctx['docker-make'])
+    fmt.update(ctx.dockermake)
 
     # Additional formating
-    if salt != 'stable':
-        # TODO, skip for all packaged versions available
-        fmt['salt_source'] = 'git'
-    if len(require) > 0:
-        fmt['requires'] = '--requires ' + ' --requires '.join(require)
     if salt:
-        fmt['tag'] += '-salt-{}'.format(salt)
+        s = str(salt).replace(' ', '').strip()
+        s = s.replace('stable', '') if len(s.replace('stable', '')) > 0  else s
+        fmt['tag'] += '-salt-{}'.format(s)
     if formula_rev:
         fmt['tag'] += '-formula-{}'.format(formula_rev)
+    if len(require) > 0:
+        fmt['requires'] += ' ' + ' '.join(require)
+    if salt and (not str(salt).startswith(('stable')) and not str(salt).startswith(('git'))):
+        fmt['salt'] = 'git ' + str(fmt['salt'])
     if dry:
         fmt['dry'] += 'echo '
-
+    if push:
+        fmt['push'] += '--push-to-registry'
+    if ctx.dockermake.get('options', False):
+        fmt['opts'] += ctx.dockermake.options
 
     # execute
     ctx.run("""
             {dry}docker-make -f DockerMake.{dist}.yml -u {repository}: \
-            {target} -t {dist}-{dist_rel}{tag} \
-            --requires {dist}-{dist_rel} \
-            {requires} \
-            --build-arg salt_version='"{salt_src} {salt}"' \
-            --build-arg salt_formula_revision="{formula_rev}" \
+            \t--name {target} \
+            \t-t {dist}-{dist_rel}{tag} \
+            \t--requires {requires} \
+            \t--build-arg SALT_VERSION='"{salt}"' \
+            \t--build-arg SALT_FORMULA_REVISION="{formula_rev}" \
+            \t{push} {opts} \
             """.format(**fmt))
 

@@ -36,8 +36,8 @@ common:
 salt:
    #ARG salt_ext_pillar=" "
   build: |
-    ARG salt_version="stable"
-    ENV SALT_BOOTSTRAP_OPTS "-dX ${salt_version}"
+    ARG SALT_VERSION="stable"
+    ENV SALT_BOOTSTRAP_OPTS "-dX ${SALT_VERSION}"
     ENV SALT_EXT_PILLAR $salt_ext_pillar
     RUN echo "Layer salt" \
       && apt-get update -qq \
@@ -52,8 +52,8 @@ salt:
 # TODO supoort for saltstack formulas from spm
 salt-formulas:
   build: |
-    ARG salt_formula_revision="nightly"
-    ENV SALT_FORMULA_REVISION $salt_formula_revision
+    ARG SALT_FORMULA_REVISION="nightly"
+    ENV SALT_FORMULA_REVISION $SALT_FORMULA_REVISION
     ENV APT_REPOSITORY "deb http://apt.mirantis.com/xenial ${SALT_FORMULA_REVISION} salt"
     ENV APT_REPOSITORY_GPG "http://apt.mirantis.com/public.gpg"
     RUN echo "Layer salt, salt-formulas prerequisites" \
