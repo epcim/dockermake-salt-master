@@ -10,11 +10,10 @@ matrix:
     # - 7
   salt:
     - stable
-    - stable latest
     - stable 2016.3
     - stable 2017.7
     - develop
-    # - git 2018.2
+    - git v2018.2
   salt-formulas:
     - stable
     - nightly
@@ -28,7 +27,7 @@ target:
     require:
       - salt
       - wheelhouse
-  salt-formulas-wheelhouse:
+  wheelhouse:
     matrix:
       - dist
       - salt
@@ -37,18 +36,23 @@ target:
       - salt
       - salt-formulas
       - wheelhouse
-#  salt-formulas-reclass:
-#    matrix:
-#      - dist
-#      - salt
-#      - salt-formulas
-#    require:
-#      - salt
-#      - salt-formulas
-#      - reclass
-#      - wheelhouse
+  salt-formulas-reclass:
+    matrix:
+      - dist
+      - salt
+      - salt-formulas
+    require:
+      - reclass
+  salt-formulas-saltclass:
+    matrix:
+      - dist
+      - salt
+      - salt-formulas
+    require:
+      - saltclass
 
 dockermake:
   destination: 'images'
   repository:  'docker.io/epcim/salt-formulas'
+  options: '--no-cache'
   # options: '--registry-user epcim'

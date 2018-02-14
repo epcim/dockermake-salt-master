@@ -42,7 +42,7 @@ salt:
     RUN echo "Layer salt" \
       && apt-get update -qq \
       && mkdir -p /var/run/salt /var/cache/salt /var/log/salt /etc/salt/pki/master/minions \
-      && curl -L https://bootstrap.saltstack.com | $SUDO sh -s -- -M ${SALT_BOOTSTRAP_OPTS} \
+      && curl -qL https://bootstrap.saltstack.com | $SUDO sh -s -- -M ${SALT_BOOTSTRAP_OPTS} \
       && useradd --system salt \
       && chown -R salt:salt /etc/salt /var/cache/salt /var/log/salt /var/run/salt \
       && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.cache /home/*/.cache
@@ -85,14 +85,43 @@ salt-formulas:
        #apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 wheelhouse:
-  # requires:
-  #   - base
-  # copy_from:
-  #   wheelhouse: /wh
   build: |
-    RUN echo "Layer wheelhouse prerequisites" \
-      && git clone https://github.com/epcim/wheelhouse.git /wh
+    ARG WHEELHOUSE_REVISION="master"
+    ENV WHEELHOUSE_REVISION $WHEELHOUSE_REVISION
+    RUN echo "Layer wheelhouse" \
+      && git clone https://github.com/epcim/wheelhouse.git /wh \
+      && cd /wh && git checkout origin/$WHEELHOUSE_REVISION
 
+
+# TODO, change reclass revision @develop to @master once merged
+reclass:
+  requires:
+  - salt
+  - salt-formulas
+  build: |
+    ARG RECLASS_REVISION="DEVELOP"
+    ENV RECLASS_REVISION $RECLASS_REVISION
+    RUN echo "Layer reclass" \
+      && mkdir -p /etc/reclass /srv/salt/reclass/classes/system \
+      && git clone https://github.com/Mirantis/reclass-system-salt-model /srv/salt/reclass/classes/system \
+      && pip install --install-option="--prefix=" --upgrade --force-reinstall -I \
+           git+https://github.com/salt-formulas/reclass.git@$RECLASS_REVISION \
+      && ln -s /usr/share/salt-formulas/reclass/service /srv/salt/reclass/classes/service
+      # apt-get update; DEBIAN_FRONTEND=noninteractive apt-get install -qy reclass && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* \
+
+saltclass:
+  requires:
+  - salt
+  - salt-formulas
+  build: |
+    RUN echo "Layer saltclass" \
+      && mkdir -p mkdir /srv/salt/saltclass/classes/system \
+      && git clone https://github.com/epcim/saltclass-system /srv/salt/saltclass/classes/system \
+      && cp -a /usr/share/salt-formulas/reclass /usr/share/salt-formulas/saltclass \
+      && for i in $(grep -r -e '^applications:' -e '^parameters:' -l /usr/share/salt-formulas/saltclass/service); do \
+           sed -i 's/applications:/states:/g;s/parameters:/pillars:/g' $i; \
+         done \
+      && ln -s /usr/share/salt-formulas/saltclass/service /srv/salt/saltclass/classes/service
 
 # BASE IMAGES
 debian-stretch:

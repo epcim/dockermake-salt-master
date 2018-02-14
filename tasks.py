@@ -3,6 +3,8 @@
 
 
 from invoke import Collection, task
+from string import Template
+import re
 
 def matrix_build(ctx, target, matrix=[], require=[], **kwargs):
     if 'dist' in matrix:
@@ -63,9 +65,6 @@ def build(ctx, target, require=[], dist='debian', dist_rel='stretch', salt=None,
            'salt'        : salt,
            'formula_rev' : formula_rev,
            'requires'    : '{}-{}'.format(dist, dist_rel),
-           'push'        : '',
-           'opts'        : '',
-           'dry'         : '',
            'tag'         : '',
           }
     fmt.update(ctx.dockermake)
@@ -73,7 +72,8 @@ def build(ctx, target, require=[], dist='debian', dist_rel='stretch', salt=None,
     # Additional formating
     if salt:
         s = str(salt).replace(' ', '').strip()
-        s = s.replace('stable', '') if len(s.replace('stable', '')) > 0  else s
+        #s = s.replace('stable', '') if len(s.replace('stable', '')) > 0  else s
+        #s = s.replace('git', '') if len(s.replace('git', '')) > 0  else s
         fmt['tag'] += '-salt-{}'.format(s)
     if formula_rev:
         fmt['tag'] += '-formula-{}'.format(formula_rev)
@@ -82,20 +82,23 @@ def build(ctx, target, require=[], dist='debian', dist_rel='stretch', salt=None,
     if salt and (not str(salt).startswith(('stable')) and not str(salt).startswith(('git'))):
         fmt['salt'] = 'git ' + str(fmt['salt'])
     if dry:
-        fmt['dry'] += 'echo '
+        fmt['dry'] = 'echo \''
+        fmt['fin'] = '\''
     if push:
-        fmt['push'] += '--push-to-registry'
+        fmt['push'] = '--push-to-registry'
     if ctx.dockermake.get('options', False):
-        fmt['opts'] += ctx.dockermake.options
+        fmt['opts'] = ctx.dockermake.options
 
     # execute
-    ctx.run("""
-            {dry}docker-make -f DockerMake.{dist}.yml -u {repository}: \
-            \t--name {target} \
-            \t-t {dist}-{dist_rel}{tag} \
-            \t--requires {requires} \
-            \t--build-arg SALT_VERSION='"{salt}"' \
-            \t--build-arg SALT_FORMULA_REVISION="{formula_rev}" \
-            \t{push} {opts} \
-            """.format(**fmt))
+    cmd = Template("""
+            ${dry}docker-make -f DockerMake.${dist}.yml -u ${repository}: --name ${target} \
+            \t-t ${dist}-${dist_rel}${tag} \
+            \t--requires ${requires} \
+            \t--build-arg SALT_VERSION="${salt}" \
+            \t--build-arg SALT_FORMULA_REVISION="${formula_rev}" \
+            \t${push} ${opts} \
+            ${fin}""").safe_substitute(fmt)
+    ctx.run(cmd.replace('  ', ''))
+    # finally remove non-matched vars
+    #ctx.run(re.sub('\$[_a-zA-Z0-9]+', '', cmd.replace('  ', '')))
 
