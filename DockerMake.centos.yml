@@ -1,0 +1,92 @@
+# vim: sts=2 ts=2 sw=2 ft=yaml
+
+# RHEL family
+
+# LAYERS
+base:
+  ignore: |
+    *.pyc
+    *~
+    *.tmp
+  build: |
+    MAINTAINER Petr Michalec "<epcim@apealive.net>"
+    ENV LANG C.UTF-8
+    ENV LANGUAGE $LANG
+    ENV TZ Etc/UTC
+
+common:
+  build: |
+    RUN echo "Layer with common packages" \
+      && yum update \
+      && yum upgrade -y \
+      && yum install -y \
+           curl \
+           git \
+           sudo \
+           vim-tiny \
+           wget \
+            \
+           apt-transport-https \
+           ca-certificates \
+           netcat \
+           tzdata \
+           zlib1g-dev
+
+salt:
+   #ARG salt_ext_pillar=" "
+  build: |
+    ARG salt_version="stable"
+    ENV SALT_BOOTSTRAP_OPTS "-dX ${salt_version}"
+    ENV SALT_EXT_PILLAR $salt_ext_pillar
+    RUN echo "Layer salt" \
+      && yum update -qq \
+      && mkdir -p /var/run/salt /var/cache/salt /var/log/salt /etc/salt/pki/master/minions \
+      && curl -L https://bootstrap.saltstack.com | $SUDO sh -s -- -M ${SALT_BOOTSTRAP_OPTS} \
+      && useradd --system salt \
+      && chown -R salt:salt /etc/salt /var/cache/salt /var/log/salt /var/run/salt
+
+
+# TODO supoort for stable/testing/nightly formulas ??
+# TODO supoort for saltstack formulas from spm
+salt-formulas:
+  build: |
+    ARG salt_formula_revision="master"
+    ENV SALT_FORMULA_REVISION $salt_formula_revision
+    RUN echo "Layer salt, salt-formulas prerequisites" \
+      && yum update -qq \
+      && DEBIAN_FRONTEND=noninteractive yum install -y --no-install-recommends \
+         gcc \
+         gpgv \
+         python-pip \
+         python-wheel \
+         python-setuptools \
+         python-dev \
+      && pip install ruamel.yaml pygitlab
+      # TODO: Once dist updated to 0.15.x install python-ruamel.yaml from pkg
+      #    python-ruamel &&\
+    RUN echo "Layer salt-formulas" \
+      && TODO, install formulas from git using salt-formulas-scripts repo
+      && xxxyyy \
+      && xxxyyy \
+      && xxxyyy \
+      && xxxyyy \
+        mkdir -p /srv/salt/env/dev ;\
+        ln -s /usr/share/salt-formulas/env /srv/salt/env/prd ;
+
+wheelhouse:
+  # requires:
+  #   - base
+  # copy_from:
+  #   wheelhouse: /wh
+  build: |
+    RUN echo "Layer wheelhouse prerequisites" \
+      && git clone https://github.com/epcim/wheelhouse.git /wh
+
+
+# BASE IMAGES
+centos-7:
+  FROM: centos:7
+  requires:
+    - base
+    - common
+
