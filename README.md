@@ -24,6 +24,7 @@ Install:
     inv --list
     inv all --dry
     inv all --push
+    inv all --push -w    # warnings only: to survive on errors
  
     WIP:
     invoke target --target saltstack --dry --push

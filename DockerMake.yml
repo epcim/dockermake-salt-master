@@ -102,7 +102,7 @@ reclass:
     ENV SALT_EXT_PILLAR $SALT_EXT_PILLAR
     ARG RECLASS_REVISION="develop"
     ENV RECLASS_REVISION $RECLASS_REVISION
-    VOLUME ['/etc/salt/pki' '/srv/salt/env' '/srv/salt/pillar' '/srv/salt/reclass']
+    # VOLUME ["/etc/salt/pki" "/srv/salt/env" "/srv/salt/pillar" "/srv/salt/reclass"]
     RUN echo "Layer reclass" \
       && mkdir -p /etc/reclass /srv/salt/reclass/classes/system \
       && git clone https://github.com/Mirantis/reclass-system-salt-model /srv/salt/reclass/classes/system \
@@ -119,7 +119,7 @@ saltclass:
   build: |
     ARG SALT_EXT_PILLAR="saltclass"
     ENV SALT_EXT_PILLAR $SALT_EXT_PILLAR
-    VOLUME ['/etc/salt/pki' '/srv/salt/env' '/srv/salt/pillar' '/srv/salt/saltclass']
+    # VOLUME ["/etc/salt/pki" "/srv/salt/env" "/srv/salt/pillar" "/srv/salt/saltclass"]
     RUN echo "Layer saltclass" \
       && mkdir -p mkdir /srv/salt/saltclass/classes/system \
       && git clone https://github.com/epcim/saltclass-system /srv/salt/saltclass/classes/system \
@@ -133,7 +133,6 @@ tini:
   build: |
     ENV TINI_VERSION 0.16.1
     ENV TINI_SHA 5e01734c8b2e6429a1ebcc67e2d86d3bb0c4574dd7819a0aff2dca784580e040
-    VOLUME ['/etc/salt/pki' '/srv/salt/env' '/srv/salt/pillar' '/srv/salt/reclass' '/srv/salt/saltclass']
     RUN curl -s -S -L "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-static-amd64" -o /bin/tini && chmod +x /bin/tini \
       && echo "$TINI_SHA  /bin/tini" | sha256sum -c -
     #COPY files/entrypoint.sh /entrypoint.sh
@@ -144,6 +143,7 @@ tini-saltmaster:
   requires:
   - tini
   build: |
+    VOLUME ["/etc/salt/pki" "/srv/salt/env" "/srv/salt/pillar" "/srv/salt/reclass" "/srv/salt/saltclass"]
     ADD files/reclass/reclass-config.yml /etc/reclass/
     ADD files/salt/master.conf    /etc/salt/master.d/
     ADD files/salt/saltclass.conf /tmp/
@@ -178,26 +178,12 @@ ubuntu-trusty:
     - base
     - common
 
-# Mixin requested: https://github.com/avirshup/DockerMake/issues
 # TODO, Jinja processing of the yaml makefile before yaml is parsed
 # TODO, build args interpolated?
-#salt-formulas-wheelhouse:
+# Mixin requested: https://github.com/avirshup/DockerMake/issues
+# salt-formulas-wheelhouse:
 #  requires:
 #  # NOTE, use with base image "--requires ubuntu-bionic"
 #  - salt
 #  - salt-formulas
 #  - wheelhouse
-#
-#salt-formulas-reclass:
-#  requires:
-#  # NOTE, use with base image "--requires ubuntu-bionic"
-#  - salt
-#  - reclass
-#  - salt-formulas
-#
-#salt-formulas-saltclass:
-#  requires:
-#  # NOTE, use with base image "--requires ubuntu-bionic"
-#  - salt
-#  - saltclass
-#  - salt-formulas
