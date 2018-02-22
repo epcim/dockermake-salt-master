@@ -143,7 +143,7 @@ tini-saltmaster:
   requires:
   - tini
   build: |
-    VOLUME ["/etc/salt/pki" "/srv/salt/env" "/srv/salt/pillar" "/srv/salt/reclass" "/srv/salt/saltclass"]
+    VOLUME [ "/etc/salt/pki" "/srv/salt/env" "/srv/salt/pillar" "/srv/salt/reclass" "/srv/salt/saltclass" ]
     ADD files/reclass/reclass-config.yml /etc/reclass/
     ADD files/salt/master.conf    /etc/salt/master.d/
     ADD files/salt/saltclass.conf /tmp/
@@ -173,7 +173,7 @@ ubuntu-xenial:
     - common
 
 ubuntu-trusty:
-  FROM: ubuntu:xenial
+  FROM: ubuntu:trusty
   requires:
     - base
     - common

@@ -6,6 +6,83 @@ from invoke import Collection, task
 from string import Template
 import re
 
+# WIP - not yet ready, finally it should be merged with @task 'all'
+# WIP - use namespace to expose images/targets as inoke tasks
+# image = Collection('image')
+#for t, options in ctx.target.items():
+#  create task (with build fn)
+#  image.add_task(matrix_build, name='XXXX')
+#@task
+#def target(ctx, target=None, dry=False, push=False, **kwargs):
+#    for t, options in ctx.target.items():
+#        if t is None:
+#            #matrix_build(ctx, t, matrix=options['matrix'], require=options['require'])
+#            pass
+#        else:
+#            if tt == t :
+#                matrix_build(ctx, t, matrix=options['matrix'], require=options['require'])
+
+@task
+def clean(ctx):
+    ctx.run("rm -rf {}".format(destination))
+
+#TODO, (pre=[clean], post=[push])
+@task(default=True)
+def all(ctx, dry=False, push=False, dry_targets=False, **kwargs):
+    for t, options in ctx.target.items():
+        matrix_build(ctx, t, matrix=options['matrix'], require=options['require'],
+                     dry=dry, push=push, dry_targets=dry_targets, **kwargs)
+
+@task
+def build(ctx, target, require=[], dist='debian', dist_rel='stretch', salt=None, formula_rev=None, push=False, dry=False, dry_targets=False, **kwargs):
+
+    # defaults
+    fmt = {'target'      : target,
+           'dist'        : dist,
+           'dist_rel'    : dist_rel,
+           'salt'        : salt,
+           'formula_rev' : formula_rev,
+           'requires'    : '',
+           'tag'         : '',
+          }
+
+    # update
+    fmt.update({'requires': '{}-{}'.format(fmt['dist'], fmt['dist_rel'])})
+    fmt.update(ctx.dockermake)
+    kwargs['require'] = require
+    kwargs['dist'] = dist
+    kwargs['dist_rel'] = dist_rel
+    kwargs['salt'] = salt
+    kwargs['formula_rev'] = formula_rev
+    kwargs['push'] = push
+    kwargs['dry'] = True if dry_targets or dry else False
+    #_dockermake_args_helper(fmt, salt=salt, formula_rev=formula_rev, push=push, dry=dry, **kwargs)
+    _dockermake_args_helper(fmt, **kwargs)
+
+    if dry_targets:
+        kw = ''
+        for k,v in kwargs.items():
+            if k in ['dry', 'dry_targets', 'require']: continue
+            if not v: continue
+            kw +='--{}'.format(k.replace('_','-'))
+            kw += ' ' if v == True else '={} '.format(str(v))
+        print('invoke build {} --require "{}" {}'.format( target, ' '.join(require), kw))
+        if not dry: return
+
+    # execute
+    cmd = Template("""
+            ${dry}docker-make -f DockerMake.${dist}.yml -u ${repository}: --name ${target} \
+            \t-t ${dist}-${dist_rel}${tag} \
+            \t--requires ${requires} \
+            \t--build-arg SALT_VERSION="${salt}" \
+            \t--build-arg SALT_FORMULA_REVISION="${formula_rev}" \
+            \t${push} ${options} \
+            ${fin}""").safe_substitute(fmt)
+    ctx.run(cmd.replace('  ', ''))
+
+
+## helpers
+
 def matrix_build(ctx, target, matrix=[], require=[], **kwargs):
     if 'dist' in matrix:
         m = matrix[:]
@@ -26,50 +103,13 @@ def matrix_build(ctx, target, matrix=[], require=[], **kwargs):
         for formula_rev in ctx.matrix['salt-formulas']:
             matrix_build(ctx, target, matrix=m, require=require, formula_rev=formula_rev, **kwargs)
         return 0
-    # finally
-    build(ctx, target, require, **kwargs)
+    else:
+        build(ctx, target, require, **kwargs)
 
 
+def _dockermake_args_helper(fmt, salt=False, formula_rev=False, require=[], dry=False, push=False, **kwargs):
+    "Additional formating for CLI options"
 
-#TODO, (pre=[clean], post=[push])
-@task(default=True)
-def all(ctx, dry=False, push=False, **kwargs):
-    for t, options in ctx.target.items():
-        matrix_build(ctx, t, matrix=options['matrix'], require=options['require'], dry=dry, push=push, **kwargs)
-
-
-# WIP - not yet ready, finally it should be merged with @task 'all'
-# WIP - use namespace to expose images/targets as inoke tasks
-#image = Collection('image')
-@task
-def target(ctx, t=None):
-    for tt, options in ctx.target.items():
-        if tt is None:
-            #image.add_task(matrix_build, name=t)
-            matrix_build(ctx, t, matrix=options['matrix'], require=options['require'])
-        else:
-            if tt == t :
-                matrix_build(ctx, t, matrix=options['matrix'], require=options['require'])
-
-
-@task
-def clean(ctx):
-    ctx.run("rm -rf {}".format(destination))
-
-
-@task
-def build(ctx, target, require=[], dist='debian', dist_rel='stretch', salt=None, formula_rev=None, dry=False, push=False, **kwargs):
-    fmt = {'target'      : target,
-           'dist'        : dist,
-           'dist_rel'    : dist_rel,
-           'salt'        : salt,
-           'formula_rev' : formula_rev,
-           'requires'    : '{}-{}'.format(dist, dist_rel),
-           'tag'         : '',
-          }
-    fmt.update(ctx.dockermake)
-
-    # Additional formating
     ## compose image tag
     if salt:
         s = str(salt).replace(' ', '').strip()
@@ -91,20 +131,5 @@ def build(ctx, target, require=[], dist='debian', dist_rel='stretch', salt=None,
     ## pusht to registry
     if push:
         fmt['push'] = '--push-to-registry'
-    ## add docker-make cli arguments/options specified in invoke.yml
-    if ctx.dockermake.get('options', False):
-        fmt['opts'] = ctx.dockermake.options
-
-    # execute
-    cmd = Template("""
-            ${dry}docker-make -f DockerMake.${dist}.yml -u ${repository}: --name ${target} \
-            \t-t ${dist}-${dist_rel}${tag} \
-            \t--requires ${requires} \
-            \t--build-arg SALT_VERSION="${salt}" \
-            \t--build-arg SALT_FORMULA_REVISION="${formula_rev}" \
-            \t${push} ${opts} \
-            ${fin}""").safe_substitute(fmt)
-    ctx.run(cmd.replace('  ', ''))
-    # finally remove non-matched vars
-    #ctx.run(re.sub('\$[_a-zA-Z0-9]+', '', cmd.replace('  ', '')))
+    return fmt
 

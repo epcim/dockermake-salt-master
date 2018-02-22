@@ -22,15 +22,15 @@ Install:
 ## Usage
 
     inv --list
+
+    # build whole matrix
     inv all --dry
+    inv all --dry-targets
     inv all --push
     inv all --push -w    # warnings only: to survive on errors
  
-    WIP:
-    invoke target --target saltstack --dry --push
+    # individual targets
+    invoke [target] [--[args][=value]] [--push]
+    invoke build wheelhouse --require "salt salt-formulas wheel" --dist=debian --dist-rel=stretch --salt=develop --formula-rev=nightly --push
 
 
-
-## TODO
-
-TBD - grep sources for TODO/FIXME/NOTE.

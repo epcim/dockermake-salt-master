@@ -1,3 +1,5 @@
+# vim: ft=yaml ts=2 sts=2 sw=2
+
 matrix:
   dist:
     ubuntu:
@@ -13,7 +15,7 @@ matrix:
     - stable 2016.3
     - stable 2017.7
     - develop
-    - git v2018.2
+    #- git v2018.2
   salt-formulas:
     - stable
     - nightly
@@ -68,5 +70,5 @@ target:
 dockermake:
   destination: 'images'
   repository:  'docker.io/epcim/salt-formulas'
-  # options: '--no-cache'
+  options: '--no-cache'
   # options: '--registry-user epcim'
