@@ -52,7 +52,7 @@ def build(ctx, target, require=[], dist='debian', dist_rel='stretch', salt=None,
             if k in ['dry', 'dry_targets', 'require']: continue
             if not v: continue
             kw +='--{}'.format(k.replace('_','-'))
-            kw += ' ' if v == True else '={} '.format(str(v))
+            kw += ' ' if v == True else '="{}" '.format(str(v))
         print('invoke build {} --require "{}" {}'.format( target, ' '.join(require), kw))
         if not dry: return
 
