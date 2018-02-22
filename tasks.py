@@ -6,21 +6,8 @@ from invoke import Collection, task
 from string import Template
 import re
 
-# WIP - not yet ready, finally it should be merged with @task 'all'
 # WIP - use namespace to expose images/targets as inoke tasks
 # image = Collection('image')
-#for t, options in ctx.target.items():
-#  create task (with build fn)
-#  image.add_task(matrix_build, name='XXXX')
-#@task
-#def target(ctx, target=None, dry=False, push=False, **kwargs):
-#    for t, options in ctx.target.items():
-#        if t is None:
-#            #matrix_build(ctx, t, matrix=options['matrix'], require=options['require'])
-#            pass
-#        else:
-#            if tt == t :
-#                matrix_build(ctx, t, matrix=options['matrix'], require=options['require'])
 
 @task
 def clean(ctx):
