@@ -23,14 +23,16 @@ Install:
 
     inv --list
 
-    # build whole matrix
     inv all --dry
     inv all --dry-targets
+
+    # build whole matrix
     inv all --push
     inv all --push -w    # warnings only: to survive on errors
  
     # individual targets
-    invoke [target] [--[args][=value]] [--push]
+    # invoke [target] [--[args][=value]] [--push]
+    inv all --dry-targets
     invoke build wheelhouse --require "salt salt-formulas wheel" --dist=debian --dist-rel=stretch --salt=develop --formula-rev=nightly --push
 
 
