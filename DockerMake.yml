@@ -28,6 +28,7 @@ common:
             \
            apt-transport-https \
            ca-certificates \
+           locales \
            netcat \
            tzdata \
            zlib1g-dev \
