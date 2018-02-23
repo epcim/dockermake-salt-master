@@ -1,13 +1,14 @@
 #!/bin/env python
-# vim: sts=2 ts=2
+# vim: sts=2 ts=2 sw=2
 
 
 from invoke import Collection, task
 from string import Template
 import re
 
-# WIP - use namespace to expose images/targets as inoke tasks
-# image = Collection('image')
+# TODOs:
+# - WIP - use namespace to expose images/targets as inoke tasks # image = Collection('image')
+# - add option from cli to override matrix configuration stored in invoke.yml
 
 @task
 def clean(ctx):
