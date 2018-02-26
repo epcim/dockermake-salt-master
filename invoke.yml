@@ -35,11 +35,11 @@ target:
   wheelhouse:
     matrix:
       - dist
-      - salt
       - salt-formulas
+      - salt
     require:
-      - salt
       - salt-formulas
+      - salt
       - wheel
   # Pure salt-master with tiny/salt-master entrypoint.
   # (no formulas, so use volumes to mount env/formulas/pillars)
@@ -54,21 +54,21 @@ target:
   saltmaster-reclass:
     matrix:
       - dist
-      - salt
       - salt-formulas
+      - salt
     require:
       - reclass
   # Ready to use salt-master with github.com/salt-formulas
   saltmaster-saltclass:
     matrix:
       - dist
-      - salt
       - salt-formulas
+      - salt
     require:
       - saltclass
 
 dockermake:
   destination: 'images'
   repository:  'docker.io/epcim/salt-formulas'
-  options: '--no-cache'
+  # options: '--no-cache'
   # options: '--registry-user epcim'
