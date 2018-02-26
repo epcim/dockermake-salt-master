@@ -17,7 +17,7 @@ base:
 common:
   build: |
     RUN echo "Layer with common packages" \
-      && apt-get update -qq \
+      && apt-get update -q \
       && apt-get upgrade -qy \
       && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
            curl \
@@ -26,6 +26,7 @@ common:
            vim-tiny \
            wget \
             \
+           gnupg2 \
            apt-transport-https \
            ca-certificates \
            locales \
@@ -39,7 +40,7 @@ salt:
     ARG SALT_VERSION="stable"
     ENV SALT_BOOTSTRAP_OPTS "-dX ${SALT_VERSION}"
     RUN echo "Layer salt" \
-      && apt-get update -qq \
+      && apt-get update -q \
       && mkdir -p /var/run/salt /var/cache/salt /var/log/salt /etc/salt/pki/master/minions \
       && curl -qL https://bootstrap.saltstack.com | $SUDO sh -s -- -M ${SALT_BOOTSTRAP_OPTS} \
       && useradd --system salt \
@@ -54,28 +55,25 @@ salt-formulas:
     ENV SALT_FORMULA_REVISION $SALT_FORMULA_REVISION
     ENV APT_REPOSITORY "deb http://apt.mirantis.com/xenial ${SALT_FORMULA_REVISION} salt"
     ENV APT_REPOSITORY_GPG "http://apt.mirantis.com/public.gpg"
-    # NOTE, wheelhouse requires at least ruamel v0.15.x (debian:stretch has 0.13.x as of 2018.2)
     RUN echo "Layer salt, salt-formulas prerequisites" \
-      && apt-get update -qq \
+      && apt-get update -q \
       && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
          gcc \
          gpgv \
+         gnupg2 \
          python-pip \
          python-wheel \
          python-setuptools \
-         python-dev \
-         python-ruamel \
-      && pip install ruamel.yaml || echo "[WARNING] pip install ruamel.yaml failed!"
+         python-dev
     # TODO, formulas from git, configure properly _modules, _states, etc. or initialize
     RUN echo "Layer salt-formulas" \
       && echo "$APT_REPOSITORY" | tee /etc/apt/sources.list.d/salt-formulas.list >/dev/null \
       && curl -sL $APT_REPOSITORY_GPG | $SUDO apt-key add - \
-      && apt-get -qq update \
+      && apt-get -q update \
       && DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" "salt-formula-*" -y --fix-missing \
-      && DEBIAN_FRONTEND=noninteractive dpkg -P --force-all "salt-master" "salt-common" "salt-minion" "reclass" -y ;\
-        mkdir -p /srv/salt/env/dev ;\
-        ln -s /usr/share/salt-formulas/env /srv/salt/env/prd ;\
-        apt-get clean; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.cache /home/*/.cache
+      && mkdir -p /srv/salt/env/dev \
+      && ln -s /usr/share/salt-formulas/env /srv/salt/env/prd \
+      && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.cache /home/*/.cache
     #
     # TODO, Alternative install salt-formulas from git
 
@@ -86,12 +84,24 @@ salt-formulas:
 
 
 wheel:
+  requires:
+    - base
   build: |
     ARG WHEELHOUSE_REVISION="master"
     ENV WHEELHOUSE_REVISION $WHEELHOUSE_REVISION
+    # NOTE, wheelhouse requires at least ruamel v0.15.x (debian:stretch has 0.13.x as of 2018.2)
+    # python-ruamel.yaml \
+    RUN echo "Layer wheelhouse prerequisites" \
+      && apt-get -q update \
+      && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+         python-pip \
+         python-setuptools \
+         libpython-dev \
+         python-dev
     RUN echo "Layer wheelhouse" \
       && git clone https://github.com/epcim/wheelhouse.git /wh \
-      && cd /wh && git checkout origin/$WHEELHOUSE_REVISION
+      && cd /wh && git checkout origin/$WHEELHOUSE_REVISION \
+      && LANG=C LC_ALL=C pip install -r /wh/requirements.txt
 
 
 # TODO, change reclass revision @develop to @master once merged

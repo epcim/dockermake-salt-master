@@ -1,4 +1,4 @@
-sudo: required
+sudo: true
 
 services:
   - docker
@@ -11,11 +11,19 @@ env:
     - secure:  # DOCKER_USER
     - secure:  # DOCKER_PASS
     - COMMIT=${TRAVIS_COMMIT::8}
+    - LANG="C.UTF-8"
+    - LC_ALL="C"
+    # temp. limit what is build on each commit to speed up testing
     - DIST=ubuntu
     - DIST_REL=xenial
+    - SALT=stable
+    - FORMULA_REV=nightly
   matrix:
-    - TARGET=saltstack SALT=stable
-    - TARGET=wheelhouse SALT=stable
+    - TARGET=wheelhouse
+    #- TARGET=saltstack
+    #- TARGET=saltmaster
+    #- TARGET=saltmaster-reclass
+    #- TARGET=saltmaster-saltclass SALT=develop
 
 install:
   - pip install -e "git+https://github.com/avirshup/DockerMake#egg=dockermake"
@@ -25,10 +33,10 @@ script:
   # TODO, docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
   - export PUSH=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "--push"; fi`
   # Test first
-  - invoke all --dry-targets --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"', 'dist_rel':'"$DIST_REL"'}" #$PUSH
-  - invoke all --dry         --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"', 'dist_rel':'"$DIST_REL"'}" #$PUSH
+  - invoke all --dry-targets --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"', 'dist_rel':'"$DIST_REL"', 'formula_rev':'"$FORMULA_REV"'}" #$PUSH
+  - invoke all --dry         --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"', 'dist_rel':'"$DIST_REL"', 'formula_rev':'"$FORMULA_REV"'}" #$PUSH
   # TODO, write proper parallel flow
-  - invoke all --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"', 'dist_rel':'"$DIST_REL"'}" #$PUSH
+  - invoke all --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"', 'dist_rel':'"$DIST_REL"', 'formula_rev':'"$FORMULA_REV"'}" #$PUSH
 
 # after_success:
 #  - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS

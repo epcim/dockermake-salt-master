@@ -46,7 +46,7 @@ def build(ctx, target, require=[], dist='debian', dist_rel='stretch', salt=None,
     if dry_targets:
         kw = ''
         for k,v in kwargs.items():
-            if k in ['dry', 'dry_targets', 'require']: continue
+            if not k.startswith(('dist', 'dist_rel', 'formula_rev', 'salt', 'build_arg')): continue
             if not v: continue
             kw +='--{}'.format(k.replace('_','-'))
             kw += ' ' if v == True else '="{}" '.format(str(v))
