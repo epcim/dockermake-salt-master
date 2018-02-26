@@ -38,5 +38,7 @@ script:
     #- docker tag $REPO:$COMMIT $REPO:travis-$TRAVIS_BUILD_NUMBER
     #- docker push $REPO
 
+after_failure:
+  - cat dockerfile.fail
 
 # TODO, notify

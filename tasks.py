@@ -123,5 +123,7 @@ def _dockermake_args_helper(fmt, salt=False, formula_rev=False, require=[], dry=
     ## pusht to registry
     if push:
         fmt['push'] = '--push-to-registry'
+    else:
+        fmt['push'] = ''
     return fmt
 
