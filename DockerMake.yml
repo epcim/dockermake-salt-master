@@ -47,8 +47,6 @@ salt:
       && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.cache /home/*/.cache
 
 
-# TODO supoort for stable/testing/nightly formulas ??
-# TODO supoort for saltstack formulas from spm
 salt-formulas:
   build: |
     ARG SALT_FORMULA_REVISION="nightly"
@@ -56,6 +54,7 @@ salt-formulas:
     ENV SALT_FORMULA_REVISION $SALT_FORMULA_REVISION
     ENV APT_REPOSITORY "deb http://apt.mirantis.com/xenial ${SALT_FORMULA_REVISION} salt"
     ENV APT_REPOSITORY_GPG "http://apt.mirantis.com/public.gpg"
+    # NOTE, wheelhouse requires at least ruamel v0.15.x (debian:stretch has 0.13.x as of 2018.2)
     RUN echo "Layer salt, salt-formulas prerequisites" \
       && apt-get update -qq \
       && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -65,11 +64,8 @@ salt-formulas:
          python-wheel \
          python-setuptools \
          python-dev \
-      && pip install ruamel.yaml
-      # TODO, Once debian update to 0.15.x install python-ruamel.yaml from pkg
-      #    python-ruamel &&\
-      # TODO, add pygithub once git is supported
-      #    python-github \
+         python-ruamel \
+      && pip install ruamel.yaml || echo "[WARNING] pip install ruamel.yaml failed!"
     # TODO, formulas from git, configure properly _modules, _states, etc. or initialize
     RUN echo "Layer salt-formulas" \
       && echo "$APT_REPOSITORY" | tee /etc/apt/sources.list.d/salt-formulas.list >/dev/null \
@@ -80,13 +76,14 @@ salt-formulas:
         mkdir -p /srv/salt/env/dev ;\
         ln -s /usr/share/salt-formulas/env /srv/salt/env/prd ;\
         apt-get clean; rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.cache /home/*/.cache
-       #
-       #Alternative ppa/nightly:
-       #echo "deb http://ppa.launchpad.net/salt-formulas/ppa/ubuntu xenial main" >/etc/apt/sources.list.d/salt-formulas.list &&\
-       #apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 39847281B4B4F5E69A9012612B06BC3AFC7315C0 &&\
-       #apt-get update &&\
-       #DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" salt-formula-* -y &&\
-       #apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    #
+    # TODO, Alternative install salt-formulas from git
+
+
+# Saltstack formulas from git
+# saltstack-formulas:
+#   TODO, install salt-stack formulas in non conflict path with salt-formulas
+
 
 wheel:
   build: |
