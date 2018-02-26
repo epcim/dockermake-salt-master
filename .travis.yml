@@ -1,0 +1,44 @@
+sudo: required
+
+services:
+  - docker
+
+language: python
+
+go:
+  - '1.5'
+
+env:
+  global:
+    - secure:  # DOCKER_EMAIL
+    - secure:  # DOCKER_USER
+    - secure:  # DOCKER_PASS
+    - COMMIT=${TRAVIS_COMMIT::8}
+    - DIST=ubuntu
+    - DIST_REL=xenial
+  matrix:
+    - TARGET=saltstack SALT=stable
+    - TARGET=wheelhouse SALT=stable
+
+install:
+  - pip install -e "git+https://github.com/avirshup/DockerMake#egg=dockermake"
+
+script:
+  # TODO, docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
+  - export PUSH=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "--push"; fi`
+  # Test first
+  - invoke all --dry-targets --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"', 'dist_rel':'"$DIST_REL"'}" #$PUSH
+  - invoke all --dry         --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"', 'dist_rel':'"$DIST_REL"'}" #$PUSH
+  # TODO, write proper parallel flow
+  - invoke all --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"', 'dist_rel':'"$DIST_REL"'}" #$PUSH
+
+# after_success:
+#  - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
+#  - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo ""; else echo "-$TRAVIS_BRANCH" ; fi`
+  # PUSH ALL BUILD IMAGES to Docker hub
+    #- docker tag $REPO:$COMMIT $REPO:$TAG
+    #- docker tag $REPO:$COMMIT $REPO:travis-$TRAVIS_BUILD_NUMBER
+    #- docker push $REPO
+
+
+# TODO, notify
