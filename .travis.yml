@@ -28,6 +28,9 @@ script:
   - invoke all --dry-targets --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"', 'dist_rel':'"$DIST_REL"'}" #$PUSH
   - invoke all --dry         --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"', 'dist_rel':'"$DIST_REL"'}" #$PUSH
   # TODO, write proper parallel flow
+  - which python
+  - which invoke
+  - which docker-make
   - invoke all --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"', 'dist_rel':'"$DIST_REL"'}" #$PUSH
 
 # after_success:
