@@ -16,8 +16,8 @@ Install:
 
     pip install dockermake pyinvoke
 
-    pip install -e git+https://github.com/avirshup/DockerMake#egg=dockermake
-    pip install -e git+https://github.com/pyinvoke/invoke#egg=invoke
+    pip install -e "git+https://github.com/avirshup/DockerMake#egg=dockermake"
+    pip install -e "git+https://github.com/pyinvoke/invoke#egg=invoke"
 
 ## Usage
 
@@ -32,7 +32,7 @@ Install:
  
     # individual targets
     # invoke [target] [--[args][=value]] [--push]
-    inv all --dry-targets
+    invoke all --dry-targets --filter "{'target':'saltstack', 'salt': 'stable'}"
     invoke build wheelhouse --require "salt salt-formulas wheel" --dist=debian --dist-rel=stretch --salt=develop --formula-rev=nightly --push
 
 

@@ -5,6 +5,7 @@
 from invoke import Collection, task
 from string import Template
 import re
+import ast
 
 # TODOs:
 # - WIP - use namespace to expose images/targets as inoke tasks # image = Collection('image')
@@ -16,36 +17,31 @@ def clean(ctx):
 
 #TODO, (pre=[clean], post=[push])
 @task(default=True)
-def all(ctx, dry=False, push=False, dry_targets=False, **kwargs):
+def all(ctx, dry=False, push=False, dry_targets=False, filter=None, **kwargs):
+    filter = ast.literal_eval(str(filter)) if filter else {}
     for t, options in ctx.target.items():
+        if not t.startswith(filter.get('target', '')): continue
         matrix_build(ctx, t, matrix=options['matrix'], require=options['require'],
-                     dry=dry, push=push, dry_targets=dry_targets, **kwargs)
+                     dry=dry, push=push, dry_targets=dry_targets, filter=filter, **kwargs)
 
 @task
 def build(ctx, target, require=[], dist='debian', dist_rel='stretch', salt=None, formula_rev=None, push=False, dry=False, dry_targets=False, **kwargs):
 
-    # defaults
-    fmt = {'target'      : target,
-           'dist'        : dist,
-           'dist_rel'    : dist_rel,
-           'salt'        : salt,
-           'formula_rev' : formula_rev,
-           'requires'    : '',
-           'tag'         : '',
-          }
-
-    # update
-    fmt.update({'requires': '{}-{}'.format(fmt['dist'], fmt['dist_rel'])})
-    fmt.update(ctx.dockermake)
-    kwargs['require'] = require
     kwargs['dist'] = dist
     kwargs['dist_rel'] = dist_rel
-    kwargs['salt'] = salt
+    kwargs['dry'] = True if dry_targets or dry else False
     kwargs['formula_rev'] = formula_rev
     kwargs['push'] = push
-    kwargs['dry'] = True if dry_targets or dry else False
-    #_dockermake_args_helper(fmt, salt=salt, formula_rev=formula_rev, push=push, dry=dry, **kwargs)
-    _dockermake_args_helper(fmt, **kwargs)
+    kwargs['require'] = require
+    kwargs['salt'] = salt
+    kwargs['target'] = target
+    # command formating + update
+    fmt = {'tag': ''}
+    fmt.update(ctx.dockermake)
+    fmt.update(kwargs)
+    fmt.update({'requires': '{}-{}'.format(fmt['dist'], fmt['dist_rel'])})
+
+    _dockermake_args_helper(fmt, **fmt)
 
     if dry_targets:
         kw = ''
@@ -71,25 +67,31 @@ def build(ctx, target, require=[], dist='debian', dist_rel='stretch', salt=None,
 
 ## helpers
 
-def matrix_build(ctx, target, matrix=[], require=[], **kwargs):
+def matrix_build(ctx, target, matrix=[], require=[], filter={}, **kwargs):
+    "salt-formulas docker images build matrix fn"
+
     if 'dist' in matrix:
         m = matrix[:]
         m.remove('dist')
-        for dist, r in ctx.matrix.dist.items():
-            for dist_rel in r:
-                matrix_build(ctx, target, matrix=m, require=require, dist=dist, dist_rel=dist_rel, **kwargs)
+        for d, dr in ctx.matrix.dist.items():
+            for r in dr:
+                if not d.startswith(filter.get('dist', '')): continue
+                if not r.startswith(filter.get('dist-rel', '')): continue
+                matrix_build(ctx, target, matrix=m, require=require, dist=d, dist_rel=r, filter=filter, **kwargs)
         return 0
     if 'salt' in matrix:
         m = matrix[:]
         m.remove('salt')
-        for salt in ctx.matrix.salt:
-            matrix_build(ctx, target, matrix=m, require=require, salt=salt, **kwargs)
+        for s in ctx.matrix.salt:
+            if not s.startswith(filter.get('salt', '')): continue
+            matrix_build(ctx, target, matrix=m, require=require, salt=s, filter=filter, **kwargs)
         return 0
     if 'salt-formulas' in matrix:
         m = matrix[:]
         m.remove('salt-formulas')
-        for formula_rev in ctx.matrix['salt-formulas']:
-            matrix_build(ctx, target, matrix=m, require=require, formula_rev=formula_rev, **kwargs)
+        for f in ctx.matrix['salt-formulas']:
+            if not f.startswith(filter.get('formula-rev', '')): continue
+            matrix_build(ctx, target, matrix=m, require=require, formula_rev=f, filter=filter, **kwargs)
         return 0
     else:
         build(ctx, target, require, **kwargs)
