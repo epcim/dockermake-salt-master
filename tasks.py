@@ -118,6 +118,8 @@ def _dockermake_args_helper(fmt, salt=False, formula_rev=False, require=[], dry=
     if dry:
         fmt['dry'] = 'echo \''
         fmt['fin'] = '\''
+    else:
+        fmt['dry'] = ''
     ## pusht to registry
     if push:
         fmt['push'] = '--push-to-registry'
