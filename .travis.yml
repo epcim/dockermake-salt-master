@@ -5,9 +5,6 @@ services:
 
 language: python
 
-go:
-  - '1.5'
-
 env:
   global:
     - secure:  # DOCKER_EMAIL
@@ -22,6 +19,7 @@ env:
 
 install:
   - pip install -e "git+https://github.com/avirshup/DockerMake#egg=dockermake"
+  - pip install -e "git+https://github.com/pyinvoke/invoke#egg=invoke"
 
 script:
   # TODO, docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
