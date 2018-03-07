@@ -10,9 +10,19 @@ base:
     *.tmp
   build: |
     MAINTAINER Petr Michalec "<epcim@apealive.net>"
+    ENV LC_ALL C
     ENV LANG C.UTF-8
     ENV LANGUAGE $LANG
     ENV TZ Etc/UTC
+
+
+common-cleanup:
+  build: |
+    RUN echo "Layer common cleanup" \
+      && apt-get clean \
+      && rm -rf /var/lib/apt/lists/* \
+      && rm -rf /tmp/* /var/tmp/* /root/.cache /home/*/.cache
+
 
 common:
   build: |
@@ -26,14 +36,17 @@ common:
            vim-tiny \
            wget \
             \
-           gnupg2 \
+           language-pack-en-base \
            apt-transport-https \
            ca-certificates \
            locales \
            netcat \
            tzdata \
+           gnupg2 \
            zlib1g-dev \
+      && update-locale LANG=en_US.UTF-8 \
       && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.cache /home/*/.cache
+
 
 salt:
   build: |
@@ -91,13 +104,14 @@ wheel:
     ENV WHEELHOUSE_REVISION $WHEELHOUSE_REVISION
     # NOTE, wheelhouse requires at least ruamel v0.15.x (debian:stretch has 0.13.x as of 2018.2)
     # python-ruamel.yaml \
-    RUN echo "Layer wheelhouse prerequisites" \
+    RUN echo "Layer pip/ruamel.yaml prerequisites" \
       && apt-get -q update \
       && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
          python-pip \
          python-setuptools \
          libpython-dev \
-         python-dev
+         python-dev \
+         gcc
     RUN echo "Layer wheelhouse" \
       && git clone https://github.com/epcim/wheelhouse.git /wh \
       && cd /wh && git checkout origin/$WHEELHOUSE_REVISION \
