@@ -14,38 +14,38 @@ base:
     ENV LANG C.UTF-8
     ENV LANGUAGE $LANG
     ENV TZ Etc/UTC
+    ENV DEBIAN_FRONTEND "noninteractive"
+    ENV LAYER_PKGUPDT "apt-get update -q"
+    ENV LAYER_INSTALL "apt-get install -y --no-install-recommends "
+    ENV LAYER_CLEANUP "apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.cache /home/*/.cache"
+
 
 
 common-cleanup:
   build: |
     RUN echo "Layer common cleanup" \
-      && apt-get clean \
-      && rm -rf /var/lib/apt/lists/* \
-      && rm -rf /tmp/* /var/tmp/* /root/.cache /home/*/.cache
+      && eval ${LAYER_CLEANUP}
 
 
 common:
   build: |
     RUN echo "Layer with common packages" \
-      && apt-get update -q \
+      && eval ${LAYER_PKGUPDT} \
       && apt-get upgrade -qy \
-      && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      && ${LAYER_INSTALL} \
            curl \
            git \
            sudo \
            vim-tiny \
            wget \
             \
-           language-pack-en-base \
            apt-transport-https \
            ca-certificates \
-           locales \
            netcat \
            tzdata \
            gnupg2 \
            zlib1g-dev \
-      && update-locale LANG=en_US.UTF-8 \
-      && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.cache /home/*/.cache
+      && eval ${LAYER_CLEANUP}
 
 
 salt:
@@ -53,12 +53,12 @@ salt:
     ARG SALT_VERSION="stable"
     ENV SALT_BOOTSTRAP_OPTS "-dX ${SALT_VERSION}"
     RUN echo "Layer salt" \
-      && apt-get update -q \
+      && eval ${LAYER_PKGUPDT} \
       && mkdir -p /var/run/salt /var/cache/salt /var/log/salt /etc/salt/pki/master/minions \
       && curl -qL https://bootstrap.saltstack.com | $SUDO sh -s -- -M ${SALT_BOOTSTRAP_OPTS} \
       && useradd --system salt \
       && chown -R salt:salt /etc/salt /var/cache/salt /var/log/salt /var/run/salt \
-      && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.cache /home/*/.cache
+      && eval ${LAYER_CLEANUP}
 
 
 salt-formulas:
@@ -69,8 +69,8 @@ salt-formulas:
     ENV APT_REPOSITORY "deb http://apt.mirantis.com/xenial ${SALT_FORMULA_REVISION} salt"
     ENV APT_REPOSITORY_GPG "http://apt.mirantis.com/public.gpg"
     RUN echo "Layer salt, salt-formulas prerequisites" \
-      && apt-get update -q \
-      && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      && eval ${LAYER_PKGUPDT} \
+      && ${LAYER_INSTALL} \
          gcc \
          gpgv \
          gnupg2 \
@@ -82,11 +82,12 @@ salt-formulas:
     RUN echo "Layer salt-formulas" \
       && echo "$APT_REPOSITORY" | tee /etc/apt/sources.list.d/salt-formulas.list >/dev/null \
       && curl -sL $APT_REPOSITORY_GPG | $SUDO apt-key add - \
-      && apt-get -q update \
-      && DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" "salt-formula-*" -y --fix-missing \
+      && eval ${LAYER_PKGUPDT} \
+      && ${LAYER_INSTALL} "salt-formula-*" -y --fix-missing \
       && mkdir -p /srv/salt/env/dev \
       && ln -s /usr/share/salt-formulas/env /srv/salt/env/prd \
-      && apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.cache /home/*/.cache
+      && eval ${LAYER_CLEANUP}
+    #&& DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" "salt-formula-*" -y --fix-missing \
     #
     # TODO, Alternative install salt-formulas from git
 
@@ -105,13 +106,14 @@ wheel:
     # NOTE, wheelhouse requires at least ruamel v0.15.x (debian:stretch has 0.13.x as of 2018.2)
     # python-ruamel.yaml \
     RUN echo "Layer pip/ruamel.yaml prerequisites" \
-      && apt-get -q update \
-      && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+      && eval ${LAYER_PKGUPDT} \
+      && ${LAYER_INSTALL}  \
          python-pip \
          python-setuptools \
          libpython-dev \
          python-dev \
          gcc
+      && eval ${LAYER_CLEANUP} \
     RUN echo "Layer wheelhouse" \
       && git clone https://github.com/epcim/wheelhouse.git /wh \
       && cd /wh && git checkout origin/$WHEELHOUSE_REVISION \
@@ -186,31 +188,44 @@ debian-stretch:
   requires:
     - base
     - common
+  build: |
+    RUN echo "Layer base image specifics" \
+      && eval ${LAYER_PKGUPDT} \
+      && ${LAYER_INSTALL} \
+           locales \
+           locales-all \
+      && update-locale LANG=en_US.UTF-8 \
+      && eval ${LAYER_CLEANUP}
+
+# Note, debian:ubuntu install locales though different packages
+locales:
+  build: |
+    RUN echo "Layer base image specifics" \
+      && eval ${LAYER_PKGUPDT} \
+      && ${LAYER_INSTALL} \
+           locales \
+           language-pack-en \
+      && update-locale LANG=en_US.UTF-8 \
+      && eval ${LAYER_CLEANUP}
 
 ubuntu-bionic:
   FROM: ubuntu:bionic
   requires:
     - base
     - common
+    - locales
 
 ubuntu-xenial:
   FROM: ubuntu:xenial
   requires:
     - base
     - common
+    - locales
 
 ubuntu-trusty:
   FROM: ubuntu:trusty
   requires:
     - base
     - common
+    - locales
 
-# TODO, Jinja processing of the yaml makefile before yaml is parsed
-# TODO, build args interpolated?
-# Mixin requested: https://github.com/avirshup/DockerMake/issues
-# salt-formulas-wheelhouse:
-#  requires:
-#  # NOTE, use with base image "--requires ubuntu-bionic"
-#  - salt
-#  - salt-formulas
-#  - wheelhouse
