@@ -112,8 +112,8 @@ wheel:
          python-setuptools \
          libpython-dev \
          python-dev \
-         gcc
-      && eval ${LAYER_CLEANUP} \
+         gcc \
+      && eval ${LAYER_CLEANUP}
     RUN echo "Layer wheelhouse" \
       && git clone https://github.com/epcim/wheelhouse.git /wh \
       && cd /wh && git checkout origin/$WHEELHOUSE_REVISION \
