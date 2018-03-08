@@ -1,52 +1,35 @@
 sudo: true
-
 services:
-  - docker
-
+- docker
 language: python
-
 env:
   global:
-    - secure:  # DOCKER_EMAIL
-    - secure:  # DOCKER_USER
-    - secure:  # DOCKER_PASS
-    - COMMIT=${TRAVIS_COMMIT::8}
-    - LANG="C.UTF-8"
-    - LC_ALL="C"
-    # temp. limit what is build on each commit to speed up testing
-    - DIST=ubuntu
-    - DIST_REL=xenial
-    - SALT=stable
-    - FORMULA_REV=nightly
+  - LANG="C.UTF-8"
+  - LC_ALL="C"
+  - DIST=ubuntu
+  - DIST_REL=xenial
+  - SALT=stable
+  - FORMULA_REV=nightly
+  - COMMIT=${TRAVIS_COMMIT::8}
+  - secure: ng2Wu+1oMndftfY+IpQP2BhfuivnmiL1VvEKpqb/lul1cWrJMTDciXKisXhZclo9IdoVEzwRg49tNMJBMWn+zxWaVR9CHuvOKY0BsFofc6jY6k9KXUreSpQfcvuSOb/Iy0BLZqxPE3qSM/Y94uIMC4yar582TXi+ObP/PdBj+bL/vr8AXd9dm69rXUeKHH1/3unf8FZI0riErGN0EPcWjUIXqxPIM8bAFMG0QLtULGe9qHO9KigLHD/FNPCQK50Z3EPRG4znDbSgcgrT5SpQXW6BUMMTYHQo/sKunR0n/3SkzLuY3ufljpPH/3cNtYvWZ7fMz7zYtpRe12Fr/BAJEk/vgcUmG8eglq18ePIN3Nhfbo0DMLrwDsMGILjk3jBuemKO5NxVlmP+tKcoXN85W0q0kbs8n1VP1hJ/d5+MfTWyLg++OL0D3+jVmQcKb5YVdKAy53ONMFH+hrr3Z+DHJT2jbVaTkS1p9yRjcy+fWe98H7cjFUrEiYS25p88AHWfXt+ltjt1cuvPknQm/PZ6oF8W/nrc+F+QAaJBXp75hXZcn7fboA5wbDlb4PJzbAh3/umNrE7YsEecZJViu/Q843pcm8RXCLhYc1D1k8Y5RCIv8zcwqUgLEyoFmnjHVcpe2J3lINfYxYVga81twtO22WVDqJY4H71gFhpA+Sf7TgY=
+  - secure: aL09BA8HrxjC5jj/zp6yYAJPu2QDIry/Nb43nH1xpY7hSiw+pWO0U2RDv/qpKjv1PBaE70EkFIlsZSHzOL6OPdu3wXMBYjmLgp08DTJWLb7aPHgdSy4tguXvKWHuAB92insEZGobRX0jqchnJ3DjfUWA5ZfBKtqEhShbmQNz4ev/H0hahZzurbIdJF+qe+MYol3EcqwZh27thsXETEgta2nqjrH+/Zj5T6+z2T63LIPZOvFuh1xrcA9YMm300oVbKMjSmSu56AIWEQJb7xJzNtkdcu70xOesqWr8NsWbw2B2jsiCnDKfWdcRv/875mY6l8g1AJm7Rbggngiqf1M8lZ+sUvXNkBMO50fz2R+ksfeizC6ORV0gbFb2yObgrNVsbIZw1/7/lltRFh5GqITM0KEalrW7VisXSViD6vin+4PCCh9xHhIQUr4MFiJwGo4/S5JAkiN8zS1/QRixpcx0J4encMCijGxXucD3427ZrxhwkTxstXQXWZv2QckZ5wIUr/qYZcfuZg9zlWxhHA/Nlk+F6eF7p4TEfOsBvgKlCB1NHTAIPMxTUzaDhpG6Jbzh0hwTmwJzHVH7R7fEDEPvvAsqQJyLTIle1S7KyQ/kwti4RlML0GRf5Faref8PRtABM9tZv07yBd8KycWUlN4BoHinNQw/khmY3hGC9Kn9GGw=
   matrix:
-    - TARGET=wheelhouse
-    #- TARGET=saltstack
-    #- TARGET=saltmaster
-    #- TARGET=saltmaster-reclass
-    #- TARGET=saltmaster-saltclass SALT=develop
-
+  - TARGET=wheelhouse
 install:
-  - pip install -e "git+https://github.com/avirshup/DockerMake#egg=dockermake"
-  - pip install -e "git+https://github.com/pyinvoke/invoke#egg=invoke"
-
+- pip install -e "git+https://github.com/avirshup/DockerMake#egg=dockermake"
+- pip install -e "git+https://github.com/pyinvoke/invoke#egg=invoke"
 script:
-  # TODO, docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
-  - export PUSH=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "--push"; fi`
-  # Test first
-  - invoke all --dry-targets --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"', 'dist_rel':'"$DIST_REL"', 'formula_rev':'"$FORMULA_REV"'}" #$PUSH
-  - invoke all --dry         --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"', 'dist_rel':'"$DIST_REL"', 'formula_rev':'"$FORMULA_REV"'}" #$PUSH
-  # TODO, write proper parallel flow
-  - invoke all --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"', 'dist_rel':'"$DIST_REL"', 'formula_rev':'"$FORMULA_REV"'}" #$PUSH
-
-# after_success:
-#  - docker login -e $DOCKER_EMAIL -u $DOCKER_USER -p $DOCKER_PASS
-#  - export TAG=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo ""; else echo "-$TRAVIS_BRANCH" ; fi`
-  # PUSH ALL BUILD IMAGES to Docker hub
-    #- docker tag $REPO:$COMMIT $REPO:$TAG
-    #- docker tag $REPO:$COMMIT $REPO:travis-$TRAVIS_BUILD_NUMBER
-    #- docker push $REPO
-
+- if [ "$TRAVIS_BRANCH" == "master" ]; then
+    echo $DOCKER_PASS | docker login --password-stdin -u $DOCKER_USER docker.io/epcim/salt;
+    export PUSH="--push";
+  fi
+- invoke all --dry-targets --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"',
+  'dist_rel':'"$DIST_REL"', 'formula_rev':'"$FORMULA_REV"'}"
+- invoke all --dry         --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"',
+  'dist_rel':'"$DIST_REL"', 'formula_rev':'"$FORMULA_REV"'}"
+- invoke all --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"',
+  'dist_rel':'"$DIST_REL"', 'formula_rev':'"$FORMULA_REV"'}" $PUSH
 after_failure:
-  - cat dockerfile.fail
-
-# TODO, notify
+- cat dockerfile.fail
+after_success:
+- docker images
