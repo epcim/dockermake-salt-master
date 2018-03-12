@@ -14,10 +14,10 @@ base:
     ENV LANG C.UTF-8
     ENV LANGUAGE $LANG
     ENV TZ Etc/UTC
-    ENV DEBIAN_FRONTEND "noninteractive"
     ENV LAYER_PKGUPDT "apt-get update -q"
     ENV LAYER_INSTALL "apt-get install -y --no-install-recommends "
     ENV LAYER_CLEANUP "apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/* /root/.cache /home/*/.cache"
+    ENV DEBIAN_FRONTEND "noninteractive"
 
 
 
