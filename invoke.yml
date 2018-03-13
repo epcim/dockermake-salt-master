@@ -8,8 +8,8 @@ matrix:
     # - bionic
     debian:
     - stretch
-    # centos:
-    # - 7
+    centos:
+    - 7
   salt:
     - stable
     - stable 2016.3

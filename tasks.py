@@ -76,7 +76,7 @@ def matrix_build(ctx, target, matrix=[], require=[], filter={}, **kwargs):
         for d, dr in ctx.matrix.dist.items():
             for r in dr:
                 if not d.startswith(filter.get('dist', '')): continue
-                if not r.startswith(filter.get('dist-rel', '')): continue
+                if not str(r).startswith(filter.get('dist-rel', '')): continue
                 matrix_build(ctx, target, matrix=m, require=require, dist=d, dist_rel=r, filter=filter, **kwargs)
         return 0
     if 'salt' in matrix:
