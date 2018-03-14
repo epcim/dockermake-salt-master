@@ -3,7 +3,6 @@
 matrix:
   dist:
     ubuntu:
-    - trusty
     - xenial
     # - bionic
     debian:
@@ -12,10 +11,9 @@ matrix:
     - 7
   salt:
     - stable
-    - stable 2016.3
     - stable 2017.7
     - develop
-    #- git v2018.2
+    #- git v2018.3
   salt-formulas:
     - stable
     - nightly
