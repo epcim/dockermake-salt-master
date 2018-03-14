@@ -35,6 +35,7 @@ common:
       && ${LAYER_INSTALL} \
            curl \
            git \
+           rsync \
            sudo \
            vim-tiny \
            wget \

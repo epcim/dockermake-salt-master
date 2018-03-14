@@ -18,7 +18,7 @@ env:
   - secure: aL09BA8HrxjC5jj/zp6yYAJPu2QDIry/Nb43nH1xpY7hSiw+pWO0U2RDv/qpKjv1PBaE70EkFIlsZSHzOL6OPdu3wXMBYjmLgp08DTJWLb7aPHgdSy4tguXvKWHuAB92insEZGobRX0jqchnJ3DjfUWA5ZfBKtqEhShbmQNz4ev/H0hahZzurbIdJF+qe+MYol3EcqwZh27thsXETEgta2nqjrH+/Zj5T6+z2T63LIPZOvFuh1xrcA9YMm300oVbKMjSmSu56AIWEQJb7xJzNtkdcu70xOesqWr8NsWbw2B2jsiCnDKfWdcRv/875mY6l8g1AJm7Rbggngiqf1M8lZ+sUvXNkBMO50fz2R+ksfeizC6ORV0gbFb2yObgrNVsbIZw1/7/lltRFh5GqITM0KEalrW7VisXSViD6vin+4PCCh9xHhIQUr4MFiJwGo4/S5JAkiN8zS1/QRixpcx0J4encMCijGxXucD3427ZrxhwkTxstXQXWZv2QckZ5wIUr/qYZcfuZg9zlWxhHA/Nlk+F6eF7p4TEfOsBvgKlCB1NHTAIPMxTUzaDhpG6Jbzh0hwTmwJzHVH7R7fEDEPvvAsqQJyLTIle1S7KyQ/kwti4RlML0GRf5Faref8PRtABM9tZv07yBd8KycWUlN4BoHinNQw/khmY3hGC9Kn9GGw=
   matrix:
   - TARGET=saltstack
-  #- TARGET=wheelhouse
+  - TARGET=wheelhouse
   #- TARGET=saltmaster-reclass DIST=ubuntu
   #- TARGET=saltmaster-saltclass DIST=ubuntu
 
