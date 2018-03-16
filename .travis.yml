@@ -23,6 +23,9 @@ env:
   - DIST=debian TARGET=saltstack
   - DIST=ubuntu TARGET=saltstack
   - DIST=centos TARGET=saltstack
+  - DIST=debian TARGET=saltmaster
+  - DIST=ubuntu TARGET=saltmaster
+  #- DIST=centos TARGET=saltmaster
   - DIST=ubuntu TARGET=wheelhouse
   #- DIST=ubuntu TARGET=saltmaster-reclass
   #- DIST=ubuntu TARGET=saltmaster-saltclass

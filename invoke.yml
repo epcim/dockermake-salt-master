@@ -38,7 +38,7 @@ target:
       - salt-formulas
       - salt
       - wheel
-  # Pure salt-master with tiny/salt-master entrypoint.
+  # Pure salt-master with tini/salt-master entrypoint.
   # (no formulas, so use volumes to mount env/formulas/pillars)
   saltmaster:
     matrix:
@@ -46,7 +46,7 @@ target:
       - salt
     require:
       - salt
-      - tiny-saltmaster
+      - tini-saltmaster
   # Ready to use salt-master with preinstalled reclass and github.com/salt-formulas
   saltmaster-reclass:
     matrix:
