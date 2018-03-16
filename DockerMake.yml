@@ -35,6 +35,7 @@ common:
       && ${LAYER_INSTALL} \
            curl \
            git \
+           rsync \
            sudo \
            vim-tiny \
            wget \
@@ -77,7 +78,8 @@ salt-formulas:
          python-pip \
          python-wheel \
          python-setuptools \
-         python-dev
+         python-dev \
+      && eval ${LAYER_CLEANUP}
     # TODO, formulas from git, configure properly _modules, _states, etc. or initialize
     RUN echo "Layer salt-formulas" \
       && echo "$APT_REPOSITORY" | tee /etc/apt/sources.list.d/salt-formulas.list >/dev/null \
