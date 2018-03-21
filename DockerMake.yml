@@ -85,11 +85,10 @@ salt-formulas:
       && echo "$APT_REPOSITORY" | tee /etc/apt/sources.list.d/salt-formulas.list >/dev/null \
       && curl -sL $APT_REPOSITORY_GPG | $SUDO apt-key add - \
       && eval ${LAYER_PKGUPDT} \
-      && ${LAYER_INSTALL} "salt-formula-*" -y --fix-missing \
+      && ${LAYER_INSTALL} "salt-formula-*" -y --fix-missing -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" \
       && mkdir -p /srv/salt/env/dev \
       && ln -s /usr/share/salt-formulas/env /srv/salt/env/prd \
       && eval ${LAYER_CLEANUP}
-    #&& DEBIAN_FRONTEND=noninteractive apt-get install -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" "salt-formula-*" -y --fix-missing \
     #
     # TODO, Alternative install salt-formulas from git
 

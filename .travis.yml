@@ -23,10 +23,11 @@ env:
   - DIST=debian TARGET=saltstack
   - DIST=ubuntu TARGET=saltstack
   - DIST=centos TARGET=saltstack
-  #- DIST=debian TARGET=wheelhouse
-  #- DIST=ubuntu TARGET=wheelhouse
-  #- DIST=centos TARGET=wheelhouse
-  #- DIST=ubuntu TARGET=saltmaster-reclass
+  #  - DIST=debian TARGET=saltmaster
+  - DIST=ubuntu TARGET=saltmaster SALT=stable FORMULA=nightly DIST_REL=xenial
+  #- DIST=centos TARGET=saltmaster
+  - DIST=ubuntu TARGET=wheelhouse
+  - DIST=ubuntu TARGET=saltmaster-reclass SALT=stable FORMULA=nightly DIST_REL=xenial
   #- DIST=ubuntu TARGET=saltmaster-saltclass
 
 install:
