@@ -1,4 +1,8 @@
 storage_type: yaml_fs
+inventory_base_uri: /srv/salt/reclass
 pretty_print: True
 output: yaml
-inventory_base_uri: /srv/salt/reclass
+
+ignore_class_notfound: True
+ignore_class_regexp:
+- 'service.*'
