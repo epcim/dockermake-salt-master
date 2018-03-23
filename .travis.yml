@@ -17,18 +17,11 @@ env:
   #- DIST_REL=xenial
   #- SALT=stable
   matrix:
-  #- DIST=debian
-  #- DIST=ubuntu
-  #- DIST=centos
+  - DIST=ubuntu
   - DIST=debian TARGET=saltstack
-  - DIST=ubuntu TARGET=saltstack
   - DIST=centos TARGET=saltstack
   #- DIST=debian TARGET=saltmaster
-  - DIST=ubuntu TARGET=saltmaster
   #- DIST=centos TARGET=saltmaster
-  - DIST=ubuntu TARGET=wheelhouse
-  - DIST=ubuntu TARGET=saltmaster-reclass
-  #- DIST=ubuntu TARGET=saltmaster-saltclass
 
 install:
 - pip install -e "git+https://github.com/avirshup/DockerMake#egg=dockermake"
