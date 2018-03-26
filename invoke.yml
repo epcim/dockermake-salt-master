@@ -15,8 +15,8 @@ matrix:
     - develop
     #- git v2018.3
   salt-formulas:
-    - stable
-    - nightly
+    - master
+    # tag: stable-2018.3
 
 # NOTE, make sure target names don't conflict with DockerMake target names
 target:
