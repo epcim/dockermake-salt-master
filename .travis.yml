@@ -1,11 +1,14 @@
-sudo: required
-language: python
-cache: pip
-python:
-- '3.6'
+sudo: true
 
 services:
 - docker
+
+language: python
+
+cache: pip
+
+python:
+- '3.6'
 
 env:
   global:
@@ -28,51 +31,29 @@ env:
   #- DIST=debian TARGET=saltmaster
   #- DIST=centos TARGET=saltmaster
 
+install:
+- pip install pipenv
+- pipenv install --system
+- pip install -e "git+https://github.com/avirshup/DockerMake#egg=dockermake"
+- pip install -e "git+https://github.com/pyinvoke/invoke#egg=invoke"
+
 script:
-  - /bin/true
-
-stages:
-- name: test
-- name: build
-  if: ( branch NOT IN (master) OR fork = true ) AND type IN (push, api, pull_request)
-- name: publish
-  #if: ( tag =~ ^v.* OR branch IN (master) ) AND type != pull_request AND fork != true
-  if: branch IN (master) AND type != pull_request AND fork != true
-
-jobs:
-  include:
-  - stage: test
-# FIXME, use Pipenv instead of pip
-    install: &prereq
-    - pip install -e "git+https://github.com/avirshup/DockerMake#egg=dockermake"
-    - pip install -e "git+https://github.com/pyinvoke/invoke#egg=invoke"
-    script:
-    - invoke all --dry-targets --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"', 'dist_rel':'"$DIST_REL"', 'formula_rev':'"$FORMULA_REV"'}"
-    - invoke all --dry         --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"', 'dist_rel':'"$DIST_REL"', 'formula_rev':'"$FORMULA_REV"'}"
-  - stage: build
-    install: *prereq
-    script:
-    # 1st build (build/test)
-    - invoke all --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"', 'dist_rel':'"$DIST_REL"', 'formula_rev':'"$FORMULA_REV"'}"
-  - stage: publish
-    install: *prereq
-    script:
-    - echo $DOCKER_PASS | docker login --password-stdin -u $DOCKER_USER docker.io/epcim/salt;
-    - export PUSH="--push";
-    - invoke all --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"', 'dist_rel':'"$DIST_REL"', 'formula_rev':'"$FORMULA_REV"'}" $PUSH ;
+- invoke all --dry-targets --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"',
+  'dist_rel':'"$DIST_REL"', 'formula_rev':'"$FORMULA_REV"'}"
+- invoke all --dry         --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"',
+  'dist_rel':'"$DIST_REL"', 'formula_rev':'"$FORMULA_REV"'}"
+# 1st build (build/test)
+- invoke all --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"',
+  'dist_rel':'"$DIST_REL"', 'formula_rev':'"$FORMULA_REV"'}"
+# 2nd build (push, with cached artefacts)
+- if [ "$TRAVIS_BRANCH" == "master" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then
+    echo $DOCKER_PASS | docker login --password-stdin -u $DOCKER_USER docker.io/epcim/salt;
+    export PUSH="--push";
+    invoke all --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"', 'dist_rel':'"$DIST_REL"', 'formula_rev':'"$FORMULA_REV"'}" $PUSH ;
+  fi
 
 after_failure:
 - test -e dockerfile.fail && cat dockerfile.fail || true
 
 after_success:
 - docker images
-
-notifications:
-  webhooks:
-    on_success: change  # options: [always|never|change] default: always
-    on_failure: never
-    on_start: never
-    on_cancel: never
-    on_error: never
-  email: true
-
