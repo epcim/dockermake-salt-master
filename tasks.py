@@ -59,7 +59,7 @@ def build(ctx, target, require=[], dist='debian', dist_rel='stretch', salt=None,
             \t-t ${dist}-${dist_rel}${tag} \
             \t--requires ${requires} \
             \t--build-arg SALT_VERSION="${salt}" \
-            \t--build-arg SALT_FORMULA_REVISION="${formula_rev}" \
+            \t--build-arg SALT_FORMULA_VERSION="${formula_rev}" \
             \t${push} ${options} \
             ${fin}""").safe_substitute(fmt)
     ctx.run(cmd.replace('  ', ''))
