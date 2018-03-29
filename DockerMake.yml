@@ -58,7 +58,7 @@ salt:
     ARG SALT_BOOTSTRAP_OPTS="-PdX ${SALT_VERSION}"
     RUN echo "Layer salt" \
       && eval ${LAYER_PKGUPDT} \
-      && mkdir -p /var/run/salt /var/cache/salt /var/log/salt /etc/salt/pki/master/minions /srv/salt/formulas /srv/salt/env \
+      && mkdir -p /var/run/salt /var/cache/salt /var/log/salt /etc/salt/pki/master/minions /srv/salt/formula /srv/salt/env \
       && curl -qL https://bootstrap.saltstack.com | $SUDO sh -s --  ${SALT_BOOTSTRAP_PKGS} -M -A localhost ${SALT_BOOTSTRAP_OPTS} \
       && useradd --system salt \
       && chown -R salt:salt /etc/salt /var/cache/salt /var/log/salt /var/run/salt \
@@ -90,7 +90,7 @@ salt-formulas:
   build: |
     ARG SALT_FORMULA_VERSION="master"
     ARG SALT_FORMULA_SOURCES="https://github.com/salt-formulas https://github.com/saltstack-formulas"
-    ARG SALT_FORMULAS_BASE="/srv/salt/formulas"
+    ARG SALT_FORMULAS_BASE="/srv/salt/formula"
     ARG SALT_ENV_PATH_="/srv/salt/env/prd"
     ARG RECLASS_BASE="/srv/salt/reclass"
     RUN echo "Layer python/salt module prerequisites, formulas" \
