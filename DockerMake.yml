@@ -54,11 +54,14 @@ salt:
   - python
   build: |
     ARG SALT_VERSION="stable"
+    ENV SALT_VERSION $SALT_VERSION
     ARG SALT_BOOTSTRAP_PKGS="-p gcc -p python-pip -p python-setuptools -p python-wheel -p python-dev"
+    ENV SALT_BOOTSTRAP_PKGS $SALT_BOOTSTRAP_PKGS
     ARG SALT_BOOTSTRAP_OPTS="-PdX ${SALT_VERSION}"
+    ENV SALT_BOOTSTRAP_OPTS $SALT_BOOTSTRAP_OPTS
     RUN echo "Layer salt" \
       && eval ${LAYER_PKGUPDT} \
-      && mkdir -p /var/run/salt /var/cache/salt /var/log/salt /etc/salt/pki/master/minions /srv/salt/formulas /srv/salt/env \
+      && mkdir -p /var/run/salt /var/cache/salt /var/log/salt /etc/salt/pki/master/minions /srv/salt/formula /srv/salt/env \
       && curl -qL https://bootstrap.saltstack.com | $SUDO sh -s --  ${SALT_BOOTSTRAP_PKGS} -M -A localhost ${SALT_BOOTSTRAP_OPTS} \
       && useradd --system salt \
       && chown -R salt:salt /etc/salt /var/cache/salt /var/log/salt /var/run/salt \
@@ -68,6 +71,7 @@ salt:
 python:
   build: |
     ARG PYTHON_VERSION="3"
+    ENV PYTHON_VERSION $PYTHON_VERSION
     RUN echo "Layer python and dev/prerequisites" \
       && eval ${LAYER_PKGUPDT} \
       && ${LAYER_INSTALL} \
@@ -89,10 +93,15 @@ salt-formulas:
   - python
   build: |
     ARG SALT_FORMULA_VERSION="master"
+    ENV SALT_FORMULA_VERSION $SALT_FORMULA_VERSION
     ARG SALT_FORMULA_SOURCES="https://github.com/salt-formulas https://github.com/saltstack-formulas"
-    ARG SALT_FORMULAS_BASE="/srv/salt/formulas"
+    ENV SALT_FORMULA_SOURCES $SALT_FORMULA_SOURCES
+    ARG SALT_FORMULAS_BASE="/srv/salt/formula"
+    ENV SALT_FORMULAS_BASE $SALT_FORMULAS_BASE
     ARG SALT_ENV_PATH_="/srv/salt/env/prd"
+    ENV SALT_ENV_PATH_ $SALT_ENV_PATH_
     ARG RECLASS_BASE="/srv/salt/reclass"
+    ENV RECLASS_BASE $RECLASS_BASE
     RUN echo "Layer python/salt module prerequisites, formulas" \
       && mkdir -p /srv/salt \
       && curl -sSqL https://raw.githubusercontent.com/salt-formulas/salt-formulas-scripts/develop/formula-fetch.sh -o /srv/salt/formula-fetch.sh \
@@ -108,6 +117,7 @@ wheel:
     - python
   build: |
     ARG WHEELHOUSE_VERSION="master"
+    ENV WHEELHOUSE_VERSION $WHEELHOUSE_VERSION
     # NOTE, wheelhouse requires at least ruamel v0.15.x (debian:stretch has 0.13.x as of 2018.2)
     # python-ruamel.yaml \
     # FIXME, use pipenv --system to install dependencies
@@ -125,9 +135,13 @@ reclass:
   - tini-saltmaster
   build: |
     ARG SALT_EXT_PILLAR="reclass"
+    ENV SALT_EXT_PILLAR $SALT_EXT_PILLAR
     ARG RECLASS_VERSION="develop"
+    ENV RECLASS_VERSION $RECLASS_VERSION
     ARG SALT_ENV_PATH_="/srv/salt/env/prd"
+    ENV SALT_ENV_PATH_ $SALT_ENV_PATH_
     ARG RECLASS_BASE="/srv/salt/reclass"
+    ENV RECLASS_BASE $RECLASS_BASE
     # VOLUME ["/etc/salt/pki" "/srv/salt/env" "/srv/salt/pillar" "$RECLASS_BASE"]
     RUN echo "Layer reclass" \
       && mkdir -p /etc/reclass $RECLASS_BASE/classes/system \
@@ -143,8 +157,11 @@ saltclass:
   - tini-saltmaster
   build: |
     ARG SALT_EXT_PILLAR="saltclass"
+    ENV SALT_EXT_PILLAR $SALT_EXT_PILLAR
     ARG SALT_ENV_PATH_="/srv/salt/env/prd"
+    ENV SALT_ENV_PATH_ $SALT_ENV_PATH_
     ARG SALTCLASS_BASE="/srv/salt/saltclass"
+    ENV SALTCLASS_BASE $SALTCLASS_BASE
     # VOLUME ["/etc/salt/pki" "/srv/salt/env" "/srv/salt/pillar" "$SALTCLASS_BASE"]
     RUN echo "Layer saltclass" \
       && mkdir -p mkdir $SALTCLASS_BASE/classes/system \
@@ -168,7 +185,9 @@ tini-saltmaster:
   - tini
   build: |
     ARG RECLASS_BASE="/srv/salt/reclass"
+    ENV RECLASS_BASE $RECLASS_BASE
     ARG SALTCLASS_BASE="/srv/salt/saltclass"
+    ENV SALTCLASS_BASE $SALTCLASS_BASE
     VOLUME [ "/etc/salt/pki" "/srv/salt/env" "/srv/salt/pillar" "$RECLASS_BASE" "$SALTCLASS_BASE" ]
     ADD files/reclass/reclass-config.yml /etc/reclass/
     ADD files/salt/master.conf    /etc/salt/master.d/
@@ -232,6 +251,7 @@ ubuntu-trusty:
 salt-formulas-pkg:
   build: |
     ARG SALT_FORMULA_VERSION="nightly"
+    ENV SALT_FORMULA_VERSION $SALT_FORMULA_VERSION
     ENV APT_REPOSITORY "deb http://apt.mirantis.com/xenial ${SALT_FORMULA_VERSION} salt"
     ENV APT_REPOSITORY_GPG "http://apt.mirantis.com/public.gpg"
     # FIXME, these prereq. should be installed platform independent way by the formula pkg itself
