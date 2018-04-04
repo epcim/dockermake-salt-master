@@ -12,8 +12,8 @@ matrix:
   salt:
     - stable
     - stable 2017.7
+    - stable 2018.3
     - develop
-    #- git v2018.3
   salt-formulas:
     - master
     # tag: stable-2018.3
