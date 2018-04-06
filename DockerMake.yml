@@ -183,19 +183,44 @@ tini-saltmaster:
   build_directory: .
   requires:
   - tini
+  - molten
   build: |
     ARG RECLASS_BASE="/srv/salt/reclass"
     ENV RECLASS_BASE $RECLASS_BASE
     ARG SALTCLASS_BASE="/srv/salt/saltclass"
     ENV SALTCLASS_BASE $SALTCLASS_BASE
+    ARG SALT_API="1"
+    ENV SALT_API $SALT_API
+    ARG SALT_API_PASSWORD=""
+    ENV SALT_API_PASSWORD $SALT_API_PASSWORD
     VOLUME [ "/etc/salt/pki" "/srv/salt/env" "/srv/salt/pillar" "$RECLASS_BASE" "$SALTCLASS_BASE" ]
     ADD files/reclass/reclass-config.yml /etc/reclass/
     ADD files/salt/master.conf    /etc/salt/master.d/
-    ADD files/salt/saltclass.conf /tmp/
-    ADD files/salt/reclass.conf   /tmp/
+    ADD files/salt/env.conf    /etc/salt/master.d/
+    ADD files/salt/*.conf /tmp/salt/
     COPY files/entrypoint.sh /entrypoint.sh
     ENTRYPOINT ["/bin/tini", "--", "/entrypoint.sh"]
     EXPOSE 4505 4506
+
+
+molten:
+  requires:
+  - base
+  build: |
+    ARG MOLTEN_VERSION=0.3.1
+    ENV MOLTEN_VERSION $MOLTEN_VERSION
+    ARG MOLTEN_MD5=04483620978a3167827bdd1424e34505
+    ENV MOLTEN_MD5 $MOLTEN_MD5
+    ADD https://github.com/martinhoefling/molten/releases/download/v${MOLTEN_VERSION}/molten-${MOLTEN_VERSION}.tar.gz molten-${MOLTEN_VERSION}.tar.gz
+    RUN echo "Layer Molten, Salt API UI" \
+      && eval ${LAYER_PKGUPDT} \
+      && apt-get upgrade -qy \
+      && ${LAYER_INSTALL} \
+           pwgen \
+      && echo "${MOLTEN_MD5}  molten-${MOLTEN_VERSION}.tar.gz" | md5sum --check \
+      && mkdir -p /opt/molten && tar -xf molten-${MOLTEN_VERSION}.tar.gz -C /opt/molten --strip-components=1 \
+      && eval ${LAYER_CLEANUP}
+    EXPOSE 8000
 
 
 # BASE IMAGES
@@ -212,6 +237,23 @@ debian-stretch:
            locales-all \
       && update-locale LANG=en_US.UTF-8 \
       && eval ${LAYER_CLEANUP}
+
+
+# wip - just to give a try..
+debian-rpi-stretch:
+  FROM: resin/rpi-raspbian:stretch
+  requires:
+    - base
+    - common
+  build: |
+    RUN echo "Layer base image specifics" \
+      && eval ${LAYER_PKGUPDT} \
+      && ${LAYER_INSTALL} \
+           locales \
+           locales-all \
+      && update-locale LANG=en_US.UTF-8 \
+      && eval ${LAYER_CLEANUP}
+
 
 # Note, debian:ubuntu install locales though different packages
 locales:
@@ -244,7 +286,6 @@ ubuntu-trusty:
     - base
     - common
     - locales
-
 
 
 # DEPRECATED salt-formulas-pkg
