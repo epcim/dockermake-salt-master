@@ -1,0 +1,99 @@
+---
+version: '3'
+services:
+  salt-master:
+    labels:
+      kompose.service.type: NodePort
+    image: epcim/salt:saltmaster-saltclass-ubuntu-xenial-salt-develop-formula-master
+    deploy:
+      mode: replicated
+      replicas: 1
+      # endpoint_mode: vip
+      #placement:
+         #constraints:
+         #- node.role == manager
+         #- engine.labels.operatingsystem == ubuntu 16.04
+         #preferences:
+         #- spread: node.labels.zone
+      # restart_policy:
+      #   condition: any
+      resources:
+        limits:
+          cpus: '0.90'
+          memory: 2048M
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+    restart: "no"
+    ports:
+    - 0.0.0.0:4505:4505
+    - 0.0.0.0:4506:4506
+    - 0.0.0.0:8000:8000
+    #networks:
+    env_file:
+    - ../../files/salt/common.env
+    environment:
+      SALT_EXT_PILLAR: reclass
+    volumes:
+    - salt-master-pki:/etc/salt/pki
+    #- type: volume
+      #source: salt-master-pki
+      #target: /etc/salt/pki
+      ## volume:
+      ##   nocopy: true
+
+    #- /srv/salt/formula: /srv/salt/formula
+    #- /srv/salt: /srv/salt
+    #- /srv/salt/env: /srv/salt/env
+    #- /srv/salt/pillar: /srv/salt/pillar
+    #- /srv/salt/proxy: /srv/salt/proxy
+    #- /srv/salt/state: /srv/salt/state
+    #- /srv/salt/reclass: /srv/salt/reclass
+    #- /srv/salt/saltclassk: /srv/salt/saltclass
+    # Use bellow for customized configuration, you can also use only single
+    # file as a volume
+    # - /etc/salt/master.d:/etc/salt/master.d
+    # tmpfs
+    #- type: tmpfs
+    #  target: /var/salt
+    #  tmpfs:
+    #    size: 1000
+    # configs:
+    #- source: salt_config
+    #  target: /etc/salt
+    #  uid: 1000
+    #  gid: 1000
+    #  mode: 0440
+
+
+#  thearchitect-ui:
+#    labels:
+#        kompose.service.type: NodePort
+#    image: docker.io/apealive/thearchitect:develop
+#    ports:
+#    - 0.0.0.0:8000:8080
+#    expose:
+#    - 8080
+#    depends_on:
+#    - salt-master
+#    build:
+#        context: thearchitect
+#        dockerfile: thearchitect/Dockerfilex
+#        #args:
+
+
+#configs:
+#  my_config:
+#    file: files/salt/xxx
+#    #external: true
+
+
+volumes:
+  salt-master-pki:
+
+
+
+#networks:
+
+
+# vim: sts=2 ts=2 sw=2 ft=yaml
