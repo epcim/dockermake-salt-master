@@ -32,8 +32,8 @@ env:
   #- DIST=centos TARGET=saltmaster
 
 install:
-- pip install pipenv
-- pipenv install --system
+#- pip install pipenv
+#- pipenv install --three
 - pip install -e "git+https://github.com/avirshup/DockerMake#egg=dockermake"
 - pip install -e "git+https://github.com/pyinvoke/invoke#egg=invoke"
 
