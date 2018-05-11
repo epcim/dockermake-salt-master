@@ -55,8 +55,8 @@ def build(ctx, target, require=[], dist='debian', dist_rel='stretch', salt=None,
 
     # execute
     cmd = Template("""
-            ${dry}docker-make -f DockerMake.${dist}.yml -u ${repository}: --name ${target} \
-            \t-t ${dist}-${dist_rel}${tag} \
+            ${dry}docker-make -f DockerMake.${dist}.yml -r ${repository} --name ${target}-${dist}-${dist_rel}${tag} \
+            \t-t latest
             \t--requires ${requires} \
             \t--build-arg SALT_VERSION="${salt}" \
             \t--build-arg SALT_FORMULA_VERSION="${formula_rev}" \

@@ -4,7 +4,7 @@ matrix:
   dist:
     ubuntu:
     - xenial
-    # - bionic
+    - bionic
     debian:
     - stretch
     centos:
@@ -20,33 +20,6 @@ matrix:
 
 # NOTE, make sure target names don't conflict with DockerMake target names
 target:
-  # Clean upstream Saltstack salt (no salt-master daemon)
-  saltstack:
-    matrix:
-      - dist
-      - salt
-    require:
-      - salt
-  # Upstream salt with preinstalled formulas and wheelhouse
-  # https://github.com/epcim/wheelhouse
-  wheelhouse:
-    matrix:
-      - dist
-      - salt-formulas
-      - salt
-    require:
-      - salt-formulas
-      - salt
-      - wheel
-  # Pure salt-master with tini/salt-master entrypoint.
-  # (no formulas, so use volumes to mount env/formulas/pillars)
-  saltmaster:
-    matrix:
-      - dist
-      - salt
-    require:
-      - salt
-      - tini-saltmaster
   # Ready to use salt-master with preinstalled reclass and github.com/salt-formulas
   saltmaster-reclass:
     matrix:
@@ -55,17 +28,9 @@ target:
       - salt
     require:
       - reclass
-  # Ready to use salt-master with github.com/salt-formulas
-  saltmaster-saltclass:
-    matrix:
-      - dist
-      - salt-formulas
-      - salt
-    require:
-      - saltclass
 
 dockermake:
   destination: 'images'
-  repository:  'docker.io/epcim/salt'
+  repository:  'docker.io/mirantis'
   # options: '--no-cache'
-  # options: '--registry-user epcim'
+  # options: '--registry-user XYZmirantis'
