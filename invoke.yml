@@ -13,7 +13,7 @@ matrix:
     - stable
     - stable 2017.7
     - stable 2018.3
-    - develop
+    #- develop
   salt-formulas:
     - master
     # tag: stable-2018.3

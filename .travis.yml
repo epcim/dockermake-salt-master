@@ -25,7 +25,8 @@ env:
   #- DIST_REL=xenial
   #- SALT=stable
   matrix:
-  - DIST=ubuntu
+  - DIST=ubuntu DIST_REL=xenial
+  - DIST=ubuntu DIST_REL=bionic
   - DIST=debian TARGET=saltstack
   - DIST=centos TARGET=saltstack
   #- DIST=debian TARGET=saltmaster
@@ -42,15 +43,17 @@ script:
   'dist_rel':'"$DIST_REL"', 'formula_rev':'"$FORMULA_REV"'}"
 - invoke all --dry         --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"',
   'dist_rel':'"$DIST_REL"', 'formula_rev':'"$FORMULA_REV"'}"
-# 1st build (build/test)
-- invoke all --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"',
-  'dist_rel':'"$DIST_REL"', 'formula_rev':'"$FORMULA_REV"'}"
+## 1st build (build/test)
+#- invoke all --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"',
+#  'dist_rel':'"$DIST_REL"', 'formula_rev':'"$FORMULA_REV"'}"
 # 2nd build (push, with cached artefacts)
 - if [ "$TRAVIS_BRANCH" == "master" -a "$TRAVIS_PULL_REQUEST" = "false" ]; then
-    echo $DOCKER_PASS | docker login --password-stdin -u $DOCKER_USER docker.io/epcim/salt;
     export PUSH="--push";
-    invoke all --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"', 'dist_rel':'"$DIST_REL"', 'formula_rev':'"$FORMULA_REV"'}" $PUSH ;
-  fi
+    echo $DOCKER_PASS | docker login --password-stdin -u $DOCKER_USER docker.io/epcim/salt;
+  else
+    export PUSH='';
+  fi;
+  invoke all --filter "{'target':'"$TARGET"', 'salt':'"$SALT"', 'dist':'"$DIST"', 'dist_rel':'"$DIST_REL"', 'formula_rev':'"$FORMULA_REV"'}" $PUSH ;
 
 after_failure:
 - test -e dockerfile.fail && cat dockerfile.fail || true
