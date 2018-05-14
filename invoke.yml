@@ -4,7 +4,7 @@ matrix:
   dist:
     ubuntu:
     - xenial
-    # - bionic
+    - bionic
     debian:
     - stretch
     centos:
@@ -27,17 +27,17 @@ target:
       - salt
     require:
       - salt
-  # Upstream salt with preinstalled formulas and wheelhouse
+  # Upstream salt with pre installed formulas and wheelhouse
   # https://github.com/epcim/wheelhouse
-  wheelhouse:
-    matrix:
-      - dist
-      - salt-formulas
-      - salt
-    require:
-      - salt-formulas
-      - salt
-      - wheel
+  #wheelhouse:
+  #  matrix:
+  #    - dist
+  #    - salt-formulas
+  #    - salt
+  #  require:
+  #    - salt-formulas
+  #    - salt
+  #    - wheel
   # Pure salt-master with tini/salt-master entrypoint.
   # (no formulas, so use volumes to mount env/formulas/pillars)
   saltmaster:
@@ -47,7 +47,7 @@ target:
     require:
       - salt
       - tini-saltmaster
-  # Ready to use salt-master with preinstalled reclass and github.com/salt-formulas
+  # Ready to use salt-master with pre installed reclass and github.com/salt-formulas
   saltmaster-reclass:
     matrix:
       - dist
@@ -56,13 +56,13 @@ target:
     require:
       - reclass
   # Ready to use salt-master with github.com/salt-formulas
-  saltmaster-saltclass:
-    matrix:
-      - dist
-      - salt-formulas
-      - salt
-    require:
-      - saltclass
+  #saltmaster-saltclass:
+  #  matrix:
+  #    - dist
+  #    - salt-formulas
+  #    - salt
+  #  require:
+  #    - saltclass
 
 dockermake:
   destination: 'images'

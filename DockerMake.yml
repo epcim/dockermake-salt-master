@@ -62,7 +62,7 @@ salt:
     RUN echo "Layer salt" \
       && eval ${LAYER_PKGUPDT} \
       && mkdir -p /var/run/salt /var/cache/salt /var/log/salt /etc/salt/pki/master/minions /srv/salt/formula /srv/salt/env \
-      && curl -qL https://raw.githubusercontent.com/saltstack/salt-bootstrap/develop/bootstrap-salt.sh | $SUDO sh -s --  ${SALT_BOOTSTRAP_PKGS} -M -A localhost ${SALT_BOOTSTRAP_OPTS} \
+      && curl -qL https://raw.githubusercontent.com/saltstack/salt-bootstrap/stable/bootstrap-salt.sh | $SUDO sh -s --  ${SALT_BOOTSTRAP_PKGS} -M -A localhost ${SALT_BOOTSTRAP_OPTS} \
       && useradd --system salt \
       && chown -R salt:salt /etc/salt /var/cache/salt /var/log/salt /var/run/salt \
       && eval ${LAYER_CLEANUP}

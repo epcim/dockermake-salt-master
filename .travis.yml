@@ -25,15 +25,16 @@ env:
   #- DIST_REL=xenial
   #- SALT=stable
   matrix:
-  - DIST=ubuntu
+  - DIST=ubuntu DIST_REL=xenial
+  - DIST=ubuntu DIST_REL=bionic
   - DIST=debian TARGET=saltstack
   - DIST=centos TARGET=saltstack
   #- DIST=debian TARGET=saltmaster
   #- DIST=centos TARGET=saltmaster
 
 install:
-- pip install pipenv
-- pipenv install --system
+#- pip install pipenv
+#- pipenv install --three
 - pip install -e "git+https://github.com/avirshup/DockerMake#egg=dockermake"
 - pip install -e "git+https://github.com/pyinvoke/invoke#egg=invoke"
 
