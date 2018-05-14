@@ -25,7 +25,8 @@ env:
   #- DIST_REL=xenial
   #- SALT=stable
   matrix:
-  - DIST=ubuntu
+  - DIST=ubuntu DIST_REL=xenial
+  - DIST=ubuntu DIST_REL=bionic
   - DIST=debian TARGET=saltstack
   - DIST=centos TARGET=saltstack
   #- DIST=debian TARGET=saltmaster
