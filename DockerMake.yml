@@ -107,9 +107,6 @@ salt-formulas:
       && curl -sSqL https://raw.githubusercontent.com/salt-formulas/salt-formulas-scripts/master/formula-fetch.sh -o /srv/salt/formula-fetch.sh \
       && bash -c 'source /srv/salt/formula-fetch.sh && setupPyEnv && fetchAll' \
       && eval ${LAYER_CLEANUP}
-    #
-    # FIXME, use formula-fetch.sh from master once available
-
 
 wheel:
   requires:
@@ -127,7 +124,6 @@ wheel:
       && LANG=C LC_ALL=C pip install -r /wh/requirements.txt
 
 
-# TODO, change reclass revision @develop to @master once merged
 reclass:
   requires:
   - salt
@@ -136,7 +132,7 @@ reclass:
   build: |
     ARG SALT_EXT_PILLAR="reclass"
     ENV SALT_EXT_PILLAR $SALT_EXT_PILLAR
-    ARG RECLASS_VERSION="develop"
+    ARG RECLASS_VERSION="master"
     ENV RECLASS_VERSION $RECLASS_VERSION
     ARG SALT_ENV_PATH_="/srv/salt/env/prd"
     ENV SALT_ENV_PATH_ $SALT_ENV_PATH_
