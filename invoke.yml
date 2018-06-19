@@ -10,9 +10,8 @@ matrix:
     centos:
     - 7
   salt:
-    #- stable
+    - stable
     - stable 2017.7
-    - stable 2016.3
     #- develop
   salt-formulas:
     - master
