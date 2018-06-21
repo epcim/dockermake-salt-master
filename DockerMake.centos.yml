@@ -58,7 +58,7 @@ salt:
       && eval ${LAYER_PKGUPDT} \
       && mkdir -p /var/run/salt /var/cache/salt /var/log/salt /etc/salt/pki/master/minions /srv/salt/scripts /srv/salt/formulas /srv/salt/env \
       && curl -qL https://bootstrap.saltstack.com | $SUDO sh -s --  ${SALT_BOOTSTRAP_PKGS} -M -A localhost ${SALT_BOOTSTRAP_OPTS} \
-      && useradd --system salt \
+      && if ! getent passwd salt > /dev/null;then useradd --system salt; fi \
       && chown -R salt:salt /etc/salt /var/cache/salt /var/log/salt /var/run/salt \
       && eval ${LAYER_CLEANUP}
 
