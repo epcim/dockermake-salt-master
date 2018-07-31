@@ -141,6 +141,7 @@ reclass:
     RUN echo "Layer reclass" \
       && mkdir -p /etc/reclass $RECLASS_BASE/classes \
       && git clone https://github.com/Mirantis/reclass-system-salt-model $RECLASS_BASE/classes/system \
+      && ls -lRa $RECLASS_BASE/classes/system \
       && pip install --install-option="--prefix=/usr/local" -I \
            "git+https://github.com/salt-formulas/reclass.git@$RECLASS_VERSION"
       # NOTE, to consider --upgrade --force-reinstall
@@ -160,8 +161,9 @@ saltclass:
     ENV SALTCLASS_BASE $SALTCLASS_BASE
     # VOLUME ["/etc/salt/pki" "/srv/salt/env" "/srv/salt/pillar" "$SALTCLASS_BASE"]
     RUN echo "Layer saltclass" \
-      && mkdir -p mkdir $SALTCLASS_BASE/classes/system \
+      && mkdir -p mkdir $SALTCLASS_BASE/classes \
       && git clone https://github.com/epcim/saltclass-system $SALTCLASS_BASE/classes/system \
+      && ls -lRa $RECLASS_BASE/classes/system \
       && for i in $(grep -r -e '^applications:' -e '^parameters:' -l $SALTCLASS_BASE); do \
            sed -i 's/applications:/states:/g;s/parameters:/pillars:/g' $i; \
          done
