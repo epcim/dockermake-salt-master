@@ -32,6 +32,10 @@ env:
   #- DIST=debian TARGET=saltmaster
   #- DIST=centos TARGET=saltmaster
 
+# Package Setup
+before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install tree -y; fi
+  
 install:
 #- pip install pipenv
 #- pipenv install --three
