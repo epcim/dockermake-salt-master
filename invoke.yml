@@ -66,6 +66,6 @@ target:
 dockermake:
   destination: 'images'
   repository:  'docker.io/epcim/salt'
-  # options: '--no-cache'
+  options: '--no-cache'
   # options: '--bust-cache reclass'
   # options: '--registry-user epcim'
