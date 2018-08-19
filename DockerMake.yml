@@ -171,9 +171,14 @@ saltclass:
 tini:
   build: |
     ENV TINI_VERSION 0.16.1
-    ENV TINI_SHA 5e01734c8b2e6429a1ebcc67e2d86d3bb0c4574dd7819a0aff2dca784580e040
-    RUN curl -s -S -L "https://github.com/krallin/tini/releases/download/v${TINI_VERSION}/tini-static-amd64" -o /bin/tini && chmod +x /bin/tini \
-      && echo "$TINI_SHA  /bin/tini" | sha256sum -c -
+    ENV TINI_PGP 0527A9B7
+    ENV TINI_URL https://github.com/krallin/tini/releases/download
+    RUN gpg --keyserver keyserver.ubuntu.com --recv-key ${TINI_PGP} \
+      && curl -s -S -L "${TINI_URL}/v${TINI_VERSION}/tini-static-$(dpkg --print-architecture).asc" -o /bin/tini.asc \
+      && curl -s -S -L "${TINI_URL}/v${TINI_VERSION}/tini-static-$(dpkg --print-architecture)" -o /bin/tini \
+      && gpg --verify /bin/tini.asc \
+      && rm /bin/tini.asc \
+      && chmod +x /bin/tini
     #COPY files/entrypoint.sh /entrypoint.sh
     #ENTRYPOINT ["/bin/tini", "--", "/entrypoint.sh"]
 
