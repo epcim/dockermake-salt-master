@@ -3,6 +3,7 @@
 
 
 from invoke import Collection, task
+from shlex import split
 from string import Template
 import re
 import ast
@@ -25,7 +26,7 @@ def all(ctx, dry=False, push=False, dry_targets=False, filter=None, **kwargs):
                      dry=dry, push=push, dry_targets=dry_targets, filter=filter, **kwargs)
 
 @task
-def build(ctx, target, require=[], dist='debian', dist_rel='stretch', salt=None, formula_rev=None, push=False, dry=False, dry_targets=False, **kwargs):
+def build(ctx, target, require=[], dist='debian', dist_rel='stretch', salt=None, formula_rev=None, push=False, dry=False, dry_targets=False, build_arg_extra='', **kwargs):
 
     kwargs['dist'] = dist
     kwargs['dist_rel'] = dist_rel
@@ -35,6 +36,7 @@ def build(ctx, target, require=[], dist='debian', dist_rel='stretch', salt=None,
     kwargs['require'] = require
     kwargs['salt'] = salt
     kwargs['target'] = target
+    kwargs['build_arg_extra'] = ' --build-arg '.join([''] + split(build_arg_extra.replace('"', '"\\"')))
     # command formating + update
     fmt = {'tag': ''}
     fmt.update(ctx.dockermake)
@@ -60,6 +62,7 @@ def build(ctx, target, require=[], dist='debian', dist_rel='stretch', salt=None,
             \t--requires ${requires} \
             \t--build-arg SALT_VERSION="${salt}" \
             \t--build-arg SALT_FORMULA_VERSION="${formula_rev}" \
+            \t${build_arg_extra} \
             \t${push} ${options} \
             ${fin}""").safe_substitute(fmt)
     ctx.run(cmd.replace('  ', ''))
