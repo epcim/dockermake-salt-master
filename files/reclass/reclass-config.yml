@@ -3,6 +3,7 @@ inventory_base_uri: /srv/salt/reclass
 pretty_print: True
 output: yaml
 
+ignore_overwritten_missing_references: True
 ignore_class_notfound: True
 ignore_class_regexp:
 - 'service.*'
